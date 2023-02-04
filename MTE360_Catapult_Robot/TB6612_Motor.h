@@ -10,7 +10,7 @@ class Motor {
 public:
   // Constructor. Mainly sets up pins.
   Motor();
-  Motor(int In1pin, int In2pin, int PWMpin, int offset, int STBYpin);
+  Motor(int DIRpin, int PWMpin, int DirectionInvert);
 
   // Drive in direction given by sign, at speed given by magnitude of the
   //parameter.
@@ -22,18 +22,39 @@ public:
   //Stops motor by setting both input pins high
   void brake();
 
-  //set the chip to standby mode.  The drive function takes it out of standby
-  //(forward, back, left, and right all call drive)
-  void standby();
+  //  no longer able to access
+  // //set the chip to standby mode.  The drive function takes it out of standby
+  // //(forward, back, left, and right all call drive)
+  // void standby();
 
 private:
   //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
-  int In1, In2, PWM, DirectionInvert, Standby;
+  int DIR, PWM, DirectionInvert;
 
   //private functions that spin the motor CC and CCW
   void fwd(int speed);
   void rev(int speed);
 };
+
+
+// class Encoder{
+//   public:
+
+//   Encoder();
+//   Encoder(int ENCA_Pin, int ENCB_Pin);
+
+//   void getDistance();
+
+//   private:
+
+//  int stepCounter; 
+//  int currentState;
+//  int prevState;
+//  const int wheelRadius;
+//  const int stepsPerWheelRotation;
+  
+// };
+
 
 class Robot{
   public:
@@ -60,8 +81,9 @@ class Robot{
   //Determine specifc slowing down rate (should be full stp[?])
   void brake();
 
-  //idle
-  void standby();
+  //  no longer able to access
+  // //idle
+  // void standby();
   private:
     Motor leftMotor, rightMotor;
 };

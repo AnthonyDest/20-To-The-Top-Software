@@ -2,24 +2,45 @@
 
 #include <Arduino.h>
 
+// Encoder::Encoder(){}
+
+// Encoder::Encoder(int ENCA_Pin, int ENCB_Pin){
+
+//   this->enc
+
+
+//   currentState = digitalRead(outputA); // Reads the "current" state of the outputA
+//     // If the previous and the current state of the outputA are different, that means a Pulse has occured
+//     if (aState != aLastState){     
+//       // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
+//       if (digitalRead(outputB) != aState) { 
+//         counter ++;
+//       } else {
+//         counter --;
+//       }
+
+
+// }
+
+
+
 Motor::Motor(){}
 
-Motor::Motor(int In1pin, int In2pin, int PWMpin, int DirectionInvertParam, int STBYpin) {
-  In1 = In1pin;
-  In2 = In2pin;
+Motor::Motor(int DIRpin, int PWMpin, int DirectionInvert) {
+  DIR = DIRpin;
   PWM = PWMpin;
-  Standby = STBYpin;
-  DirectionInvert = DirectionInvertParam;
+  // Standby = STBYpin;
+  this->DirectionInvert = DirectionInvert;
 
-  pinMode(In1, OUTPUT);
-  pinMode(In2, OUTPUT);
+  pinMode(DIR, OUTPUT);
   pinMode(PWM, OUTPUT);
-  pinMode(Standby, OUTPUT);
+
+  // pinMode(Standby, OUTPUT);
 }
 
 //Determines which way to spin motor
 void Motor::drive(int speed) {
-  digitalWrite(Standby, HIGH);
+  // digitalWrite(Standby, HIGH);
   speed = speed * DirectionInvert;
   if (speed >= 0) fwd(speed);
   else rev(-speed);
@@ -33,29 +54,28 @@ void Motor::drive(int speed, int duration) {
 
 //Go Forward at entered speed
 void Motor::fwd(int speed) {
-  digitalWrite(In1, HIGH);
-  digitalWrite(In2, LOW);
+  digitalWrite(DIR, HIGH); // MAY BE LOW BASED ON ELEC NOT
   analogWrite(PWM, speed);
 }
 
 //Go backwards at entered speed
 void Motor::rev(int speed) {
-  digitalWrite(In1, LOW);
-  digitalWrite(In2, HIGH);
+  digitalWrite(DIR, LOW); //MAY BE HIGH BASED ON ELEC NOT
   analogWrite(PWM, speed);
 }
 
 //Use motor to brake robot (CAREFUL, LOOK AT BACK EMF AND SHORTING)
 void Motor::brake() {
-  digitalWrite(In1, HIGH);
-  digitalWrite(In2, HIGH);
+  // digitalWrite(In1, HIGH);
+  // digitalWrite(In2, HIGH);
   analogWrite(PWM, 0);
 }
 
-//Idle motor (no power) (CAREFUL, LOOK AT BACK EMF AND SHORTING)
-void Motor::standby() {
-  digitalWrite(Standby, LOW);
-}
+// no longer used
+// //Idle motor (no power) (CAREFUL, LOOK AT BACK EMF AND SHORTING)
+// void Motor::standby() {
+//   digitalWrite(Standby, LOW);
+// }
 
 /*****************************************************************************/
 
@@ -126,8 +146,9 @@ void Robot::brake() {
   rightMotor.brake();
 }
 
-//idle
-void Robot::standby() {
-  leftMotor.standby();
-  rightMotor.standby();
-}
+// no longer used
+// //idle
+// void Robot::standby() {
+//   leftMotor.standby();
+//   rightMotor.standby();
+// }
