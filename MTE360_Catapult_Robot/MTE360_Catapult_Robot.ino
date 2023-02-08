@@ -7,12 +7,11 @@
 #define PWM_M1 9// LEFT
 #define PWM_M2 8// RIGHT
 
-
 // Pins for encoder
 // Digital pins
 #define ENCA_M1 6
 #define ENCB_M1 5
-// Analog pins to be converted to digital
+// Analog pins to be converted to digital (doesn't auto convert on nano)
 #define ENCA_M2 21
 #define ENCB_M2 22
 
@@ -25,20 +24,17 @@
 const int DirectionInvertLeft = 1;
 const int DirectionInvertRight = -1;
 
-// Initializing motors
+// Initializing
 Motor leftMotor = Motor(DIR1_M1, PWM_M1, DirectionInvertLeft);
 Motor rightMotor = Motor(DIR1_M2, PWM_M2, DirectionInvertRight);
+Encoder leftEncoder = Encoder(ENCA_M1,ENCB_M1); // digital pin
+Encoder rightEncoder = Encoder(ENCA_M2,ENCB_M2); // analog pin, dont think digital read works on nanos - will need testing
+//add encoder here and put in robot object
 
-Robot robot = Robot(leftMotor, rightMotor);
+Robot robot = Robot(leftMotor, rightMotor, leftEncoder, rightEncoder);
 
 void setup() {
-  //Nothing needed here for motors
-
-  pinMode(ENCA_M1, INPUT);
-  pinMode(ENCB_M1, INPUT);
-  pinMode(ENCA_M2, INPUT);
-  pinMode(ENCB_M2, INPUT);
-
+  // need to clock down based on Lana's undervolting (change 9600)
   Serial.begin(9600);
 }
 
@@ -56,13 +52,25 @@ void loop() {
   robot.brake();
   delay(3000);
 
-  robot.rightTurn(100);
+  robot.rightTurnStationary(100);
   delay(3000);
 
   robot.brake();
   delay(3000);
 
-  robot.leftTurn(100);
+  robot.leftTurnStationary(100);
+  delay(3000);
+
+  robot.brake();
+  delay(3000);
+
+  robot.forwardDriveDistance(200,60);
+  delay(3000);
+
+  robot.brake();
+  delay(3000);
+
+  robot.reverseDriveDistance(200,60);
   delay(3000);
 
   robot.brake();

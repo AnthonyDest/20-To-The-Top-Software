@@ -6,6 +6,14 @@
 //used in some functions so you don't have to send a speed
 #define DEFAULTSPEED 255
 
+const int FORWARD_DIR = 1;
+const int BACKWARD_DIR = -1;
+
+const int DIGITAL_PIN = 0;
+const int ANALOG_PIN = 1;
+// #define SPEEDINCREMENT 50
+// #define SPEEDDELAY 50
+
 class Motor {
 public:
   // Constructor. Mainly sets up pins.
@@ -14,10 +22,15 @@ public:
 
   // Drive in direction given by sign, at speed given by magnitude of the
   //parameter.
-  void drive(int speed);
+  void drive(int speed, int direction);
+
+  void speedUp(int desiredSpeed, int prevSpeed, int direction);
+  void slowDown(int desiredSpeed, int prevSpeed, int direction);
+
+  int getMotorDir();
 
   // drive(), but with a delay(duration)
-  void drive(int speed, int duration);
+  // void drive(int speed, int duration);
 
   //Stops motor by setting both input pins high
   void brake();
@@ -29,7 +42,16 @@ public:
 
 private:
   //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
-  int DIR, PWM, DirectionInvert;
+  int DIR, PWM, DirectionInvert, prevSpeed, curSpeed, curDirState = 0;
+
+  const int SPEEDINCREMENT = 50;
+  const int SPEEDDELAY = 50;
+
+  // enum robotSpeedDirection
+  // {   forwardDir = 1,
+  //     backwardDir= -1
+  // };
+
 
   //private functions that spin the motor CC and CCW
   void fwd(int speed);
@@ -37,55 +59,69 @@ private:
 };
 
 
-// class Encoder{
-//   public:
+class Encoder {
+public:
 
-//   Encoder();
-//   Encoder(int ENCA_Pin, int ENCB_Pin);
+  Encoder();
+  Encoder(int ENCA_Pin, int ENCB_Pin);
 
-//   void getDistance();
+  void EncScanActive();  // this needs to be called to use encoders
 
-//   private:
+  void resetCounter(); // or a "trip 1" button
+  float getDistanceCM();
 
-//  int stepCounter; 
-//  int currentState;
-//  int prevState;
-//  const int wheelRadius;
-//  const int stepsPerWheelRotation;
-  
-// };
+  void getMotorDirection();
+
+private:
+
+  int stepCounter;
+  int aCurrentState;
+  int aPrevState;
+  int ENC_A, ENC_B;
+
+  const int wheelDiamMM = 80;             // [mm]
+  const int stepsPerWheelRotation = 200;  // Needs testing to calculate
+};
 
 
-class Robot{
-  public:
-  
+class Robot {
+public:
+
   Robot();
-  Robot(Motor leftMotor, Motor rightMotor);
+  Robot(Motor leftMotor, Motor rightMotor, Encoder leftEncoder, Encoder rightEncoder);
 
   //zzDrive robot fwd, customize speed and time?) - speed only for now, all will have a 5 second oh shit timmer
   //need to determine if we want to do forward(+value) backward(+value) or just a drive and parameter symbol will determine direction (currently just doing explicity Fwd/rev)
   void forwardDrive(int speed);
-  void forwardDrive();
+  // void forwardDrive();
 
   void backwardDrive(int speed);
-  void backwardDrive();
+  // void backwardDrive();
 
   //customize more later
-  void leftTurn(int speed);
+  void leftTurnStationary(int speed);
   //void leftTurn();
 
   //customize more later
-  void rightTurn(int speed);
+  void rightTurnStationary(int speed);
   //void rightTurn();
 
   //Determine specifc slowing down rate (should be full stp[?])
   void brake();
 
+  void forwardDriveDistance(int speed, float distanceCM);
+
+  void reverseDriveDistance(int speed, float distanceCM);
   //  no longer able to access
   // //idle
   // void standby();
-  private:
-    Motor leftMotor, rightMotor;
+private:
+
+  float average(float inputA, float inputB);
+
+  Motor leftMotor, rightMotor;
+  Encoder leftEncoder, rightEncoder;
+  float initialDistance = 0, currentDistanceTravelled = 0;
 };
 
 #endif
