@@ -1,5 +1,6 @@
 #include "TB6612_Motor.h"
 // Limited functionality, only 4/6 combos due to pins
+
 // Pins for all inputs (NOT CONFIGURED YET)
 #define DIR1_M1 10// LEFT
 #define DIR1_M2 11 // RIGHT
@@ -14,6 +15,11 @@
 // Analog pins to be converted to digital (doesn't auto convert on nano)
 #define ENCA_M2 21
 #define ENCB_M2 22
+
+#define WIRE_PORT Wire // Your desired Wire port.      Used when "USE_SPI" is not defined
+// The value of the last bit of the I2C address.
+// On the SparkFun 9DoF IMU breakout the default is 1, and when the ADR jumper is closed the value becomes 0
+#define AD0_VAL 1
 
 // these constants are used to allow you to make your motor configuration
 // line up with function names like forward.  Value can be 1 or -1
