@@ -1,7 +1,3 @@
-/*
- * Rotary encoder library for Arduino.
- */
-
 #ifndef rotary_h
 #define rotary_h
 

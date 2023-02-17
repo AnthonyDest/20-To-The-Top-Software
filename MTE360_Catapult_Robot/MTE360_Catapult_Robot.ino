@@ -1,70 +1,66 @@
-#include "TB6612_Motor.h"
+#include "Robot.h"
+#include <Arduino.h>
 
-const int DirectionInvertLeft = 1;
-const int DirectionInvertRight = 1;
+#define DIR1_M1 7  // LEFT
+#define DIR1_M2 8  // RIGHT
 
-// // change this to match the SD shield or module;
-// const int chipSelect = 10;
-// File dataLog;
+#define PWM_M1 6  // LEFT
+#define PWM_M2 9  // RIGHT
 
-// // Initializing
-Motor leftMotor = Motor(DIR1_M1, PWM_M1, DirectionInvertLeft);
-Motor rightMotor = Motor(DIR1_M2, PWM_M2, DirectionInvertRight);
-Encoder leftEncoder = Encoder(ENCA_M1, ENCB_M1, DirectionInvertLeft);    // digital pin
-Encoder rightEncoder = Encoder(ENCA_M2, ENCB_M2, DirectionInvertRight);  // analog pin, dont think digital read works on nanos - will need testing
+// Pins for encoder
+// Digital pins
+#define ENCA_M1 3
+#define ENCB_M1 2
 
-// Robot robot = Motor(leftMotor, rightMotor, leftEncoder, rightEncoder);
+// Analog pins to be converted to digital (doesn't auto convert on nano)
+#define ENCA_M2 A2
+#define ENCB_M2 A3
 
-// // Will add sd card file as parameter later so we can log anytime a command was run in all other functions
+const int DirectionInvertLeft = -1;
+const int DirectionInvertRight = -1;
+int state = 0;
+
+Motor leftMotor(DIR1_M1, PWM_M1, DirectionInvertLeft);
+Motor rightMotor(DIR1_M2, PWM_M2, DirectionInvertRight);
+Encoder leftEncoder(ENCA_M1, ENCB_M1, DirectionInvertLeft);    // digital pin
+Encoder rightEncoder(ENCA_M2, ENCB_M2, DirectionInvertRight);  // analog pin, dont think digital read works on nanos - will need testing
+
+Robot motorOnlyBot(leftMotor, rightMotor);
+//  Robot bobBot(leftMotor, rightMotor, leftEncoder, rightEncoder);
 
 void setup() {
-  //     if (!SD.begin()) { // can put in slave pin as parameter
-  //     Serial.println("SD CARD FAILED, OR NOT PRESENT!");
-  //   }
-  //   Serial.println("SD CARD initialization sucessful");
-
-  //   // have each save be unique based on current time so we can track multipule results at a time?
-  //  dataLog = SD.open("dataLog.txt", FILE_WRITE);
-
-  // This code can be moved to loop, dont want to put now and continously write to file until we test a bit more
-  // // if the file opened okay, write to it:
-  //  if (dataLog) {
-  //     dataLog.println("testing 1, 2, 3.");
-  //     // close the file:
-  //     dataLog.close();
-  //   } else {
-  //     // if the file didn't open, print an error:
-  //     Serial.println("error opening file");
-  //   }
 
   Serial.begin(9600);
-  // leftMotor.speedUp(50, 0, 1);
-  // rightMotor.fwd(100);
-
-  // leftEncoder.resetCounter();
-  // rightEncoder.resetCounter();
-  // Serial.println("RESET");
-  // Serial.println("aa" + (unsigned long)&leftMotor);
-
-
-  // Serial.println("LEFT IN COIDE: " + (unsigned long)&leftMotor);
-  //  Serial.println("LEFT IN BOT: " + (unsigned long)&robot.leftMotor);
 }
-
 
 void loop() {
 
-  // leftEncoder.EncScanActive();
-  // rightEncoder.EncScanActive();
+  if (state == 0) {
+    motorOnlyBot.forwardDrive(100);
+    delay(5000);
+    motorOnlyBot.brake();
+    state++;
+  }
 
-  //  leftMotor.rev(200);
-  // rightMotor.rev(200);
+  if (state == 1) {
+    motorOnlyBot.backwardDrive(100);
+    delay(5000);
+    motorOnlyBot.brake();
+    state++;
+  }
 
-  // delay(2000);
+  if (state == 2) {
+    motorOnlyBot.leftTurnStationary(50);
+    delay(5000);
+    motorOnlyBot.brake();
+    state++;
+  }
 
-  //  leftMotor.rev(0);
-  //  rightMotor.rev(0);
-
-  //  delay(50000);
+  if (state == 3) {
+    motorOnlyBot.rightTurnStationary(50);
+    delay(5000);
+    motorOnlyBot.brake();
+    state++;
+  }
 
 }
