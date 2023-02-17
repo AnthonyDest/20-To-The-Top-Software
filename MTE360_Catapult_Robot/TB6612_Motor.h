@@ -2,15 +2,17 @@
 #define TB6612_Motor_h
 
 #include <Arduino.h>
+#include "Rotary.h"
 
-//used in some functions so you don't have to send a speed
-#define DEFAULTSPEED 255
+#define FORWARD_DIR 1
+#define BACKWARD_DIR -1
 
-const int FORWARD_DIR = 1;
-const int BACKWARD_DIR = -1;
+// const int FORWARD_DIR = 1;
+// const int BACKWARD_DIR = -1;
 
-const int DIGITAL_PIN = 0;
-const int ANALOG_PIN = 1;
+// const int DIGITAL_PIN = 0;
+// const int ANALOG_PIN = 1;
+
 // #define SPEEDINCREMENT 50
 // #define SPEEDDELAY 50
 
@@ -40,12 +42,15 @@ public:
   // //(forward, back, left, and right all call drive)
   // void standby();
 
-private:
+// private:
   //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
-  int DIR, PWM, DirectionInvert, prevSpeed, curSpeed, curDirState = 0;
+  int DIR, PWM, DirectionInvert, prevSpeed, curDirState = 0;
 
-  const int SPEEDINCREMENT = 50;
-  const int SPEEDDELAY = 50;
+  const int SPEEDINCREMENT = 25;
+  const int SPEEDDELAY = 250;
+
+  const int MINSPEED = 50;
+  const int MAXSPEED = 250;
 
   // enum robotSpeedDirection
   // {   forwardDir = 1,
@@ -63,7 +68,7 @@ class Encoder {
 public:
 
   Encoder();
-  Encoder(int ENCA_Pin, int ENCB_Pin);
+  Encoder(int ENCA_Pin, int ENCB_Pin, int DirectionInvert);
 
   void EncScanActive();  // this needs to be called to use encoders
 
@@ -74,13 +79,17 @@ public:
 
 private:
 
+  Rotary rotary;
+  unsigned char rotaryDirection;
+
   int stepCounter;
-  int aCurrentState;
-  int aPrevState;
-  int ENC_A, ENC_B;
+  // int aCurrentState;
+  // int aPrevState;
+  // int ENC_A, ENC_B;
+  int DirectionInvert;
 
   const int wheelDiamMM = 80;             // [mm]
-  const int stepsPerWheelRotation = 200;  // Needs testing to calculate
+  const int stepsPerWheelRotation = 358;  // Needs testing to calculate
 };
 
 
@@ -88,7 +97,9 @@ class Robot {
 public:
 
   Robot();
-  Robot(Motor leftMotor, Motor rightMotor, Encoder leftEncoder, Encoder rightEncoder);
+  // Robot(Motor& testMotorP);
+
+  Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder);
 
   //zzDrive robot fwd, customize speed and time?) - speed only for now, all will have a 5 second oh shit timmer
   //need to determine if we want to do forward(+value) backward(+value) or just a drive and parameter symbol will determine direction (currently just doing explicity Fwd/rev)
@@ -115,12 +126,15 @@ public:
   //  no longer able to access
   // //idle
   // void standby();
-private:
+
+ private:
 
   float average(float inputA, float inputB);
 
-  Motor leftMotor, rightMotor;
-  Encoder leftEncoder, rightEncoder;
+  Motor *leftMotor;
+  Motor *rightMotor;
+  Encoder *leftEncoder;
+  Encoder *rightEncoder;
   float initialDistance = 0, currentDistanceTravelled = 0;
 };
 
