@@ -1,7 +1,7 @@
-#ifndef rotary_h
-#define rotary_h
+#ifndef Rotary_h
+#define Rotary_h
 
-#include "Arduino.h"
+#include <Arduino.h>
 
 // Enable this to emit codes twice per step.
 //#define HALF_STEP

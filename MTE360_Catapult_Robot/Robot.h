@@ -2,6 +2,7 @@
 #define Robot_h
 
 #include "TB6612_Motor.h"
+#include "Encoder.h"
 
 class Robot {
 public:

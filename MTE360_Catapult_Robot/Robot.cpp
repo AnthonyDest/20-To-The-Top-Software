@@ -15,12 +15,13 @@ Robot::Robot(Motor &_leftMotor, Motor &_rightMotor) {
   leftMotor = &_leftMotor;
   rightMotor = &_rightMotor;
 }
-// Robot::Robot(Motor &_leftMotor, Motor &_rightMotor, Encoder &_leftEncoder, Encoder &_rightEncoder) {
-//   leftMotor = &_leftMotor;
-//   rightMotor = &_rightMotor;
-//   leftEncoder = &_leftEncoder;
-//   rightEncoder = &_rightEncoder;
-// }
+
+Robot::Robot(Motor &_leftMotor, Motor &_rightMotor, Encoder &_leftEncoder, Encoder &_rightEncoder) {
+  leftMotor = &_leftMotor;
+  rightMotor = &_rightMotor;
+  leftEncoder = &_leftEncoder;
+  rightEncoder = &_rightEncoder;
+}
 
 //Drive forward
 void Robot::forwardDrive(int speed) {

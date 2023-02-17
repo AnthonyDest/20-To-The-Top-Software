@@ -14,8 +14,8 @@
 // const int DIGITAL_PIN = 0;
 // const int ANALOG_PIN = 1;
 
-#define SPEEDINCREMENT 50
-#define SPEEDDELAY 100
+#define SPEEDINCREMENT 100
+#define SPEEDDELAY 50
 
 class Motor {
 public:

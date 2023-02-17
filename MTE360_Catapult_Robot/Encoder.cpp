@@ -1,6 +1,6 @@
 #include "Encoder.h"
-#include "Arduino.h"
-#include "Rotary.h"
+#include <Arduino.h>
+ #include "Rotary.h"
 
 Encoder::Encoder() {}
 
@@ -47,7 +47,7 @@ void Encoder::EncScanActive() {
 //     //  Serial.println(stepCounter);
 //   }
 //   aPrevState = aCurrentState;
-// }
+//  }
 
 void Encoder::resetCounter() {
   stepCounter = 0;

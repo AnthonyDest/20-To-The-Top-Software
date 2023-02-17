@@ -1,8 +1,8 @@
 #ifndef Encoder_h
 #define Encoder_h
 
-#include "Arduino.h"
-#include "Rotary.h"
+#include <Arduino.h>
+ #include "Rotary.h"
 
 class Encoder {
 public:
