@@ -213,16 +213,6 @@ public:
   //  Configure I2C_SLV0 and I2C_SLV1 to: request mag data from the hidden reserved AK09916 registers; trigger Single Measurements
   //  Configure I2C Master ODR (default to 68.75Hz)
 
-  // To Do:
-  //  Additional FIFO output control: FIFO_WATERMARK, BM_BATCH_MASK, BM_BATCH_CNTR, BM_BATCH_THLD
-  //  Configuring DMP features: PED_STD_STEPCTR, PED_STD_TIMECTR
-  //  Enabling Activity Recognition (BAC) feature
-  //  Enabling Significant Motion Detect (SMD) feature
-  //  Enabling Tilt Detector feature
-  //  Enabling Pick Up Gesture feature
-  //  Enabling Fsync detection feature
-  //  Biases: add save and load methods
-
   ICM_20948_Status_e enableDMP(bool enable = true);
   ICM_20948_Status_e resetDMP(void);
   ICM_20948_Status_e loadDMPFirmware(void);

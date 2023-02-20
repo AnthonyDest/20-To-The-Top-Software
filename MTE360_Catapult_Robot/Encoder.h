@@ -9,7 +9,7 @@ public:
 
   Encoder();
   Encoder(int ENCA_Pin, int ENCB_Pin, int DirectionInvert);
-
+  void rotate();
   void EncScanActive();  // this needs to be called to use encoders
 
   void resetCounter();  // or a "trip 1" button
@@ -17,15 +17,15 @@ public:
 
   void getMotorDirection();
 
-private:
+// private:
 
   Rotary rotary;
   unsigned char rotaryDirection;
 
   int stepCounter;
-  // int aCurrentState;
-  // int aPrevState;
-  // int ENC_A, ENC_B;
+  int aCurrentState;
+  int aPrevState;
+  int ENC_A, ENC_B;
   int DirectionInvert;
 
   const int wheelDiamMM = 80;             // [mm]

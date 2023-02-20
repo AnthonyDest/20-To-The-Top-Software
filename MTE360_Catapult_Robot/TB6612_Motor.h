@@ -43,7 +43,7 @@ public:
   // //(forward, back, left, and right all call drive)
   // void standby();
 
-private:
+// private:
   //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
   int DIR, PWM, DirectionInvert, curSpeed = 0, curDirState = 0, nextSpeed;
 
