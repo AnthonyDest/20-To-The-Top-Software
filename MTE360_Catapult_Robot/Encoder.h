@@ -13,9 +13,14 @@ public:
   void EncScanActive();  // this needs to be called to use encoders
 
   void resetCounter();  // or a "trip 1" button
+
+  void resetTurnCounter();
+
   float getDistanceCM();
 
   void getMotorDirection();
+
+  float getTurnAngle();
 
 // private:
 
@@ -28,8 +33,11 @@ public:
   int ENC_A, ENC_B;
   int DirectionInvert;
 
+  
+  int stepCounterForTurning = 0;
+
   const int wheelDiamMM = 80;             // [mm]
-  const int stepsPerWheelRotation = 358;  // Needs testing to calculate
+  const int stepsPerWheelRotation = 358;  // Needs testing to validate [steps/360deg]
 };
 
 #endif

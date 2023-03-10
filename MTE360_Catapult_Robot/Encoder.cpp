@@ -53,7 +53,7 @@ void Encoder::EncScanActive() {
       stepCounter--;
       // Serial.println("Backward");
     }
-    //  Serial.println(stepCounter);
+      Serial.println(stepCounter);
   }
   aPrevState = aCurrentState;
  }
@@ -62,13 +62,27 @@ void Encoder::resetCounter() {
   stepCounter = 0;
 }
 
-float Encoder::getDistanceCM() {
+void Encoder::resetTurnCounter(){
+  stepCounterForTurning = 0;
+}
 
+
+float Encoder::getDistanceCM() {
   // Serial.println(float(stepCounter) / float(stepsPerWheelRotation));
   // return ((stepCounter / float(stepsPerWheelRotation) )* float(wheelDiamMM) * float(3.14159 / 10));  // replace pi with math library
   return (float(stepCounter) / float(stepsPerWheelRotation));
 }
 void Encoder::getMotorDirection() {}  // can use encoder to sample motor and verify rotation
+
+float Encoder::getTurnAngle(){
+
+  if (stepCounterForTurning == 0){
+    stepCounterForTurning = stepCounter;
+  }
+
+  return (stepCounter - stepCounterForTurning)/stepsPerWheelRotation; // Gets Delta steps, multiply by [angle/steps] to get angle rotated. Might be backwards
+
+}
 
 
 /*****************************************************************************/

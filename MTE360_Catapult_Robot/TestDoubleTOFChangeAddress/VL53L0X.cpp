@@ -16,7 +16,7 @@
 #define startTimeout() (timeout_start_ms = millis())
 
 // Check if timeout is enabled (set to nonzero value) and has expired
-#define checkTimeoutExpired() (io_timeout > 0 && ((uint16_t)millis() - timeout_start_ms) > io_timeout)
+#define checkTimeoutExpired() (io_timeout > 0 && ((uint16_t)(millis() - timeout_start_ms) > io_timeout))
 
 // Decode VCSEL (vertical cavity surface emitting laser) pulse period in PCLKs
 // from register value
@@ -34,8 +34,9 @@
 
 // Constructors ////////////////////////////////////////////////////////////////
 
-VL53L0X::VL53L0X(void)
-  : address(ADDRESS_DEFAULT)
+VL53L0X::VL53L0X()
+  : bus(&Wire)
+  , address(ADDRESS_DEFAULT)
   , io_timeout(0) // no timeout
   , did_timeout(false)
 {
@@ -59,6 +60,9 @@ void VL53L0X::setAddress(uint8_t new_addr)
 // mode.
 bool VL53L0X::init(bool io_2v8)
 {
+  // check model ID register (value specified in datasheet)
+  if (readReg(IDENTIFICATION_MODEL_ID) != 0xEE) { return false; }
+
   // VL53L0X_DataInit() begin
 
   // sensor uses 1V8 mode for I/O by default; switch to 2V8 mode if necessary
@@ -281,32 +285,32 @@ bool VL53L0X::init(bool io_2v8)
 // Write an 8-bit register
 void VL53L0X::writeReg(uint8_t reg, uint8_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write(value);
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  bus->write(value);
+  last_status = bus->endTransmission();
 }
 
 // Write a 16-bit register
 void VL53L0X::writeReg16Bit(uint8_t reg, uint16_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 8) & 0xFF); // value high byte
-  Wire.write( value       & 0xFF); // value low byte
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  bus->write((uint8_t)(value >> 8)); // value high byte
+  bus->write((uint8_t)(value)); // value low byte
+  last_status = bus->endTransmission();
 }
 
 // Write a 32-bit register
 void VL53L0X::writeReg32Bit(uint8_t reg, uint32_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 24) & 0xFF); // value highest byte
-  Wire.write((value >> 16) & 0xFF);
-  Wire.write((value >>  8) & 0xFF);
-  Wire.write( value        & 0xFF); // value lowest byte
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  bus->write((uint8_t)(value >> 24)); // value highest byte
+  bus->write((uint8_t)(value >> 16));
+  bus->write((uint8_t)(value >>  8));
+  bus->write((uint8_t)(value));       // value lowest byte
+  last_status = bus->endTransmission();
 }
 
 // Read an 8-bit register
@@ -314,12 +318,12 @@ uint8_t VL53L0X::readReg(uint8_t reg)
 {
   uint8_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  last_status = bus->endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)1);
-  value = Wire.read();
+  bus->requestFrom(address, (uint8_t)1);
+  value = bus->read();
 
   return value;
 }
@@ -329,13 +333,13 @@ uint16_t VL53L0X::readReg16Bit(uint8_t reg)
 {
   uint16_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  last_status = bus->endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)2);
-  value  = (uint16_t)Wire.read() << 8; // value high byte
-  value |=           Wire.read();      // value low byte
+  bus->requestFrom(address, (uint8_t)2);
+  value  = (uint16_t)bus->read() << 8; // value high byte
+  value |=           bus->read();      // value low byte
 
   return value;
 }
@@ -345,15 +349,15 @@ uint32_t VL53L0X::readReg32Bit(uint8_t reg)
 {
   uint32_t value;
 
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  last_status = bus->endTransmission();
 
-  Wire.requestFrom(address, (uint8_t)4);
-  value  = (uint32_t)Wire.read() << 24; // value highest byte
-  value |= (uint32_t)Wire.read() << 16;
-  value |= (uint16_t)Wire.read() <<  8;
-  value |=           Wire.read();       // value lowest byte
+  bus->requestFrom(address, (uint8_t)4);
+  value  = (uint32_t)bus->read() << 24; // value highest byte
+  value |= (uint32_t)bus->read() << 16;
+  value |= (uint16_t)bus->read() <<  8;
+  value |=           bus->read();       // value lowest byte
 
   return value;
 }
@@ -362,30 +366,30 @@ uint32_t VL53L0X::readReg32Bit(uint8_t reg)
 // starting at the given register
 void VL53L0X::writeMulti(uint8_t reg, uint8_t const * src, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
+  bus->beginTransmission(address);
+  bus->write(reg);
 
   while (count-- > 0)
   {
-    Wire.write(*(src++));
+    bus->write(*(src++));
   }
 
-  last_status = Wire.endTransmission();
+  last_status = bus->endTransmission();
 }
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
 // register, into the given array
 void VL53L0X::readMulti(uint8_t reg, uint8_t * dst, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
+  bus->beginTransmission(address);
+  bus->write(reg);
+  last_status = bus->endTransmission();
 
-  Wire.requestFrom(address, count);
+  bus->requestFrom(address, count);
 
   while (count-- > 0)
   {
-    *(dst++) = Wire.read();
+    *(dst++) = bus->read();
   }
 }
 
@@ -407,7 +411,7 @@ bool VL53L0X::setSignalRateLimit(float limit_Mcps)
 }
 
 // Get the return signal rate limit check value in MCPS
-float VL53L0X::getSignalRateLimit(void)
+float VL53L0X::getSignalRateLimit()
 {
   return (float)readReg16Bit(FINAL_RANGE_CONFIG_MIN_COUNT_RATE_RTN_LIMIT) / (1 << 7);
 }
@@ -424,17 +428,13 @@ bool VL53L0X::setMeasurementTimingBudget(uint32_t budget_us)
   SequenceStepEnables enables;
   SequenceStepTimeouts timeouts;
 
-  uint16_t const StartOverhead      = 1320; // note that this is different than the value in get_
+  uint16_t const StartOverhead     = 1910;
   uint16_t const EndOverhead        = 960;
   uint16_t const MsrcOverhead       = 660;
   uint16_t const TccOverhead        = 590;
   uint16_t const DssOverhead        = 690;
   uint16_t const PreRangeOverhead   = 660;
   uint16_t const FinalRangeOverhead = 550;
-
-  uint32_t const MinTimingBudget = 20000;
-
-  if (budget_us < MinTimingBudget) { return false; }
 
   uint32_t used_budget_us = StartOverhead + EndOverhead;
 
@@ -486,7 +486,7 @@ bool VL53L0X::setMeasurementTimingBudget(uint32_t budget_us)
     //  timeouts must be expressed in macro periods MClks
     //  because they have different vcsel periods."
 
-    uint16_t final_range_timeout_mclks =
+    uint32_t final_range_timeout_mclks =
       timeoutMicrosecondsToMclks(final_range_timeout_us,
                                  timeouts.final_range_vcsel_period_pclks);
 
@@ -508,12 +508,12 @@ bool VL53L0X::setMeasurementTimingBudget(uint32_t budget_us)
 // Get the measurement timing budget in microseconds
 // based on VL53L0X_get_measurement_timing_budget_micro_seconds()
 // in us
-uint32_t VL53L0X::getMeasurementTimingBudget(void)
+uint32_t VL53L0X::getMeasurementTimingBudget()
 {
   SequenceStepEnables enables;
   SequenceStepTimeouts timeouts;
 
-  uint16_t const StartOverhead     = 1910; // note that this is different than the value in set_
+  uint16_t const StartOverhead     = 1910;
   uint16_t const EndOverhead        = 960;
   uint16_t const MsrcOverhead       = 660;
   uint16_t const TccOverhead        = 590;
@@ -796,7 +796,7 @@ void VL53L0X::startContinuous(uint32_t period_ms)
 
 // Stop continuous measurements
 // based on VL53L0X_StopMeasurement()
-void VL53L0X::stopContinuous(void)
+void VL53L0X::stopContinuous()
 {
   writeReg(SYSRANGE_START, 0x01); // VL53L0X_REG_SYSRANGE_MODE_SINGLESHOT
 
@@ -810,7 +810,7 @@ void VL53L0X::stopContinuous(void)
 // Returns a range reading in millimeters when continuous mode is active
 // (readRangeSingleMillimeters() also calls this function after starting a
 // single-shot range measurement)
-uint16_t VL53L0X::readRangeContinuousMillimeters(void)
+uint16_t VL53L0X::readRangeContinuousMillimeters()
 {
   startTimeout();
   while ((readReg(RESULT_INTERRUPT_STATUS) & 0x07) == 0)
@@ -834,7 +834,7 @@ uint16_t VL53L0X::readRangeContinuousMillimeters(void)
 // Performs a single-shot range measurement and returns the reading in
 // millimeters
 // based on VL53L0X_PerformSingleRangingMeasurement()
-uint16_t VL53L0X::readRangeSingleMillimeters(void)
+uint16_t VL53L0X::readRangeSingleMillimeters()
 {
   writeReg(0x80, 0x01);
   writeReg(0xFF, 0x01);
@@ -974,9 +974,7 @@ uint16_t VL53L0X::decodeTimeout(uint16_t reg_val)
 
 // Encode sequence step timeout register value from timeout in MCLKs
 // based on VL53L0X_encode_timeout()
-// Note: the original function took a uint16_t, but the argument passed to it
-// is always a uint16_t.
-uint16_t VL53L0X::encodeTimeout(uint16_t timeout_mclks)
+uint16_t VL53L0X::encodeTimeout(uint32_t timeout_mclks)
 {
   // format: "(LSByte * 2^MSByte) + 1"
 
@@ -1004,7 +1002,7 @@ uint32_t VL53L0X::timeoutMclksToMicroseconds(uint16_t timeout_period_mclks, uint
 {
   uint32_t macro_period_ns = calcMacroPeriod(vcsel_period_pclks);
 
-  return ((timeout_period_mclks * macro_period_ns) + (macro_period_ns / 2)) / 1000;
+  return ((timeout_period_mclks * macro_period_ns) + 500) / 1000;
 }
 
 // Convert sequence step timeout from microseconds to MCLKs with given VCSEL period in PCLKs

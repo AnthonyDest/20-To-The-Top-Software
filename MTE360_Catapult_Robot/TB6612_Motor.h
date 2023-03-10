@@ -16,6 +16,7 @@
 
 #define SPEEDINCREMENT 100
 #define SPEEDDELAY 50
+#define TURN_SPEED 50
 
 class Motor {
 public:

@@ -14,7 +14,7 @@ Motor::Motor(int _DIR, int _PWM, int _DirectionInvert) {
 
   pinMode(DIR, OUTPUT);
   pinMode(PWM, OUTPUT);
-  Serial.begin(9600);
+  // Serial.begin(9600);
   // pinMode(Standby, OUTPUT);
 }
 
