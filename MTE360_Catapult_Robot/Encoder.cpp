@@ -53,7 +53,7 @@ void Encoder::EncScanActive() {
       stepCounter--;
       // Serial.println("Backward");
     }
-      Serial.println(stepCounter);
+      //  Serial.println(stepCounter);
   }
   aPrevState = aCurrentState;
  }
@@ -62,12 +62,16 @@ void Encoder::resetCounter() {
   stepCounter = 0;
 }
 
-void Encoder::resetTurnCounter(){
-  stepCounterForTurning = 0;
+void Encoder::resetTurnCounter(){ // can be combined to just use trip counter
+  stepCounterForTurning = stepCounter;
+}
+
+void Encoder::resetTripCounter(){
+  stepTripCounterBegin = stepCounter;
 }
 
 
-float Encoder::getDistanceCM() {
+float Encoder::getDistanceCM() { //fix
   // Serial.println(float(stepCounter) / float(stepsPerWheelRotation));
   // return ((stepCounter / float(stepsPerWheelRotation) )* float(wheelDiamMM) * float(3.14159 / 10));  // replace pi with math library
   return (float(stepCounter) / float(stepsPerWheelRotation));

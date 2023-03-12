@@ -36,6 +36,9 @@ public:
   //void rightTurn();
 
   void leftTurnStationaryUsingEncoder(float angle);
+  void rightTurnStationaryUsingEncoder(float angle);
+  void travelledDistanceUsingEncoder(float angle);
+
 
   //Determine specifc slowing down rate (should be full stp[?])
   void brake();
@@ -47,9 +50,10 @@ public:
 
   // TOF Sensor
 
-  void Setup_TOF_Address();  //TOFSensor _Bot_TOF_With_Reset,TOFSensor _Top_TOF_No_Reset); //BOT HAS RESET PIN, TOP HAS NO RESET PIN
-
-  bool scanForPole();
+  void Setup_TOF_Address();
+  void scanBothTOF();
+  bool poleFound(); //aka poleFound check if facing pole
+  void searchForPole();
 
   uint16_t linearDistToPole = 0;
 
