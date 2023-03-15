@@ -273,17 +273,19 @@ bool Robot::poleFound() {
   //NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
   //Have a better tolerance with testing
   scanBothTOF();
-  Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
-  Serial.println("Top AVG: " + String(scanDistanceTopAverage));
+  // Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
+  // Serial.println("Top AVG: " + String(scanDistanceTopAverage));
 
   delay(200);
+  if (scanDistanceBotAverage > 100 & scanDistanceTopAverage > 100 ){
+    linearDistToPole = average(scanDistanceBotAverage, scanDistanceTopAverage);
 
-  if (scanDistanceBotAverage > 100) {
-    linearDistToPole = scanDistanceBotAverage / 10;  // NEEDS A SCALING FACTOR TO CM VIA TESTING
+  } else if (scanDistanceBotAverage > 100) {
+    linearDistToPole = scanDistanceBotAverage;  
     return true;
 
   } else if (scanDistanceTopAverage > 100) {
-    linearDistToPole = scanDistanceTopAverage / 10;  // NEEDS A SCALING FACTOR TO CM VIA TESTING
+    linearDistToPole = scanDistanceTopAverage; 
     return true;
   }
   // if (scanDistanceBotAverage != 0 && scanDistanceTopAverage != 0){
@@ -308,8 +310,8 @@ void Robot::searchForPole() {  //Assumes pole will always be found during full r
   int scanCounterMax = 72;     //360 rotation // temporary full circle for testing assuming 360deg/5deg
   int scanCounter = 0;
   while (!poleFound() and scanCounter < scanCounterMax) {
-    Serial.println("Turning to scan " + String(scanCounter));
-    leftTurnStationaryUsingEncoder(50);  // 650 ~ 1 rotation
+    // Serial.println("Turning to scan " + String(scanCounter));
+    leftTurnStationaryUsingEncoder(50);  // 650 ~ 1 rotation (?)
     scanCounter++;
     delay(500);  //shorten post testing
   }

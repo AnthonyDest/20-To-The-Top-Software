@@ -49,7 +49,7 @@ void TOFSensor::debounceDistance(uint16_t &scanDistance, uint16_t &scanDistanceA
       if(scanDistanceAverage == 0){
         scanDistanceAverage = scanDistance;
       } else {
-        scanDistanceAverage = average(scanDistanceAverage, scanDistance) * cos(radians(10));
+        scanDistanceAverage = average(scanDistanceAverage, scanDistance) * cos(radians(28));
       }
   }
 }

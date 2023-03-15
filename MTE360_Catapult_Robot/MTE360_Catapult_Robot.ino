@@ -97,7 +97,7 @@ if (state == 2){
   // meBot.testPIDDriveEncoderStepCount(600);
   // leftMotor.brake();
 
-  Serial.println("DRIVE: "  + String(mesBot.linearDistToPole / MM_PER_STEP));
+  // Serial.println("DRIVE: "  + String(mesBot.linearDistToPole / MM_PER_STEP));
   mesBot.testPIDDriveEncoderStepCount(mesBot.linearDistToPole / MM_PER_STEP);
   delay(2000);
   state++;

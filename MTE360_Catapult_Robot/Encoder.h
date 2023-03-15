@@ -6,7 +6,7 @@
 
 // #define CMperStep (float(wheelDiamMM)/10)*3.14159/float(stepsPerWheelRotation) //get actual values here once finalized
 // #define CM_TO_STEPS (3.14159*80/10)/()
-#define MM_PER_STEP 26.7
+#define MM_PER_STEP 0.375 //26.7
 
 
 class Encoder {
