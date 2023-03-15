@@ -26,6 +26,62 @@ Robot::Robot(Motor &_leftMotor, Motor &_rightMotor, Encoder &_leftEncoder, Encod
   topTOF = &_topTOF;
 }
 
+
+void Robot::travelledDistanceUsingEncoder(float stepToTravel, int speed) {
+  //keep turning while angle needed < cur angle + tol
+  double deltaLeft = 0;  // fix temp storage
+  double deltaRight = 0;
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  // rightMotor->setupPID(deltaRight, speed, stepToTravel);
+  // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
+
+  //only going fwd for now, rev is fwd based on wiring
+  leftMotor->rev(speed);
+  rightMotor->rev(speed);
+
+  while (stepToTravel > average(deltaLeft, deltaRight)) {
+    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+    // leftMotor->compute();
+    // rightMotor->compute();
+
+    // leftMotor->rev(speed);
+    // rightMotor->rev(speed);
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+}
+
+
+void Robot::testPIDDriveEncoderStepCount(double stepToTravel) {  // left wheel only
+  double speedLeft = 0;
+  double speedRight = 0;  
+  double deltaLeft = 0;  // fix temp storage
+  double deltaRight = 0;
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  leftMotor->setupPID(deltaLeft, speedLeft, stepToTravel);
+  rightMotor->setupPID(deltaRight, speedRight, stepToTravel);
+
+  while (stepToTravel > average(deltaLeft, deltaRight)) {
+    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+    //  Serial.println("Steps travel: " + String(deltaSteps) +  "Speed: " + String(speed));
+    leftMotor->compute();
+    leftMotor->rev(speedLeft);
+    rightMotor->compute();
+    rightMotor->rev(speedRight);
+
+  }
+  leftMotor->brake();
+  leftMotor->stop();
+  rightMotor->brake();
+  rightMotor->stop();
+}
+
 void Robot::allConfiguration() {
   Setup_TOF_Address();
 }
@@ -66,7 +122,7 @@ void Robot::rightTurnStationary(int speed) {
 //   float deltaRight = 0;
 //   leftMotor->drive(TURN_SPEED, BACKWARD_DIR);
 //   rightMotor->drive(TURN_SPEED, FORWARD_DIR);
-  
+
 //   leftEncoder->resetTurnCounter();
 //   rightEncoder->resetTurnCounter();
 
@@ -78,31 +134,56 @@ void Robot::rightTurnStationary(int speed) {
 //   rightMotor->brake();
 // }
 
-void Robot::leftTurnStationaryUsingEncoder(float encSteps) { // can maybe use L/R turn stationary commands but speed should be slow enough and very custom so not significant
-  leftMotor->drive(TURN_SPEED, BACKWARD_DIR);
-  rightMotor->drive(TURN_SPEED, FORWARD_DIR);
-  travelledDistanceUsingEncoder(encSteps);
+void Robot::leftTurnStationaryUsingEncoder(float encSteps) {  // can maybe use L/R turn stationary commands but speed should be slow enough and very custom so not significant
+  // leftMotor->drive(TURN_SPEED, BACKWARD_DIR);
+  // rightMotor->drive(TURN_SPEED, FORWARD_DIR);
+  // travelledDistanceUsingEncoder(encSteps, 50);
+
+double deltaLeft = 0;  // fix temp storage
+  double deltaRight = 0;
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  // rightMotor->setupPID(deltaRight, speed, stepToTravel);
+  // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
+
+  //only going fwd for now, rev is fwd based on wiring
+  leftMotor->fwd(50);
+  rightMotor->rev(50);
+
+  while (encSteps > average(deltaLeft, deltaRight)) {
+    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+    // leftMotor->compute();
+    // rightMotor->compute();
+
+    // leftMotor->rev(speed);
+    // rightMotor->rev(speed);
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+
 }
 
 void Robot::rightTurnStationaryUsingEncoder(float encSteps) {
   leftMotor->drive(TURN_SPEED, FORWARD_DIR);
   rightMotor->drive(TURN_SPEED, BACKWARD_DIR);
-  travelledDistanceUsingEncoder(encSteps);
+  travelledDistanceUsingEncoder(encSteps, 50);
 }
 
-void Robot::travelledDistanceUsingEncoder(float encSteps) {
-  //keep turning while angle needed < cur angle + tol
-  float deltaLeft = 0; // fix temp storage
-  float deltaRight = 0;
-  leftEncoder->resetTripCounter();
-  rightEncoder->resetTripCounter();
-  while(encSteps > average(deltaLeft, deltaRight)){
-  deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
-  deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
-  }
-  leftMotor->brake();
-  rightMotor->brake();
-}
+// void Robot::travelledDistanceUsingEncoder(float encSteps) {
+//   //keep turning while angle needed < cur angle + tol
+//   float deltaLeft = 0; // fix temp storage
+//   float deltaRight = 0;
+//   leftEncoder->resetTripCounter();
+//   rightEncoder->resetTripCounter();
+//   while(encSteps > average(deltaLeft, deltaRight)){
+//   deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+//   deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+//   }
+//   leftMotor->brake();
+//   rightMotor->brake();
+// }
 
 //Motor braking (hard stop)
 void Robot::brake() {
@@ -116,38 +197,38 @@ void Robot::brake() {
   rightMotor->brake();
 }
 
-void Robot::forwardDriveDistance(int speed, float distanceCM) { //currently steps
+void Robot::forwardDriveDistance(int speed, float distanceMM) {  //currently steps
 
   leftMotor->drive(speed, FORWARD_DIR);
   rightMotor->drive(speed, FORWARD_DIR);
 
   // Serial.println(distanceCM * rightEncoder->CM_TO_STEPS);
   // travelledDistanceUsingEncoder((distanceCM)*0.80 - 100);
-  travelledDistanceUsingEncoder(distanceCM - speed); // WILL NEED CALIBRATION
+  // travelledDistanceUsingEncoder(distanceCM- speed); // WILL NEED CALIBRATION
+  travelledDistanceUsingEncoder(distanceMM / MM_PER_STEP);  // WILL NEED CALIBRATION
+    // delay(5000);
+    // travelledDistanceUsingEncoder(distanceCM * rightEncoder->CM_TO_STEPS);
 
-  // delay(5000);
-  // travelledDistanceUsingEncoder(distanceCM * rightEncoder->CM_TO_STEPS);
-  
 
 
-  // initialDistance = average(leftEncoder->getDistanceCM(), rightEncoder->getDistanceCM());  // do we get average and compare end result avg, or do we just monitor each independently
+  // initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
   // // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
   // forwardDrive(speed);
 
   // while (distanceCM >= currentDistanceTravelled) {
-  //   currentDistanceTravelled = average(leftEncoder->getDistanceCM(), rightEncoder->getDistanceCM()) - initialDistance;
+  //   currentDistanceTravelled = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance;
   // }
   // currentDistanceTravelled = 0;
   // brake();  // will stop currently for testing, but this can be removed later to optimize
 }
 
 void Robot::reverseDriveDistance(int speed, float distanceCM) {
-  initialDistance = average(leftEncoder->getDistanceCM(), rightEncoder->getDistanceCM());  // do we get average and compare end result avg, or do we just monitor each independently
+  initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
   // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
   backwardDrive(speed);
 
   while (distanceCM >= currentDistanceTravelled) {
-    currentDistanceTravelled = abs(average(leftEncoder->getDistanceCM(), rightEncoder->getDistanceCM()) - initialDistance);
+    currentDistanceTravelled = abs(average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance);
   }
   currentDistanceTravelled = 0;
   brake();  // will stop currently for testing, but this can be removed later to optimize
@@ -175,13 +256,13 @@ void Robot::Setup_TOF_Address() {
   botTOF->initalizeTOF();
 }
 
-void Robot::scanBothTOF(){
+void Robot::scanBothTOF() {
   scanDistanceBotAverage = 0;
   scanDistanceTopAverage = 0;
 
   for (scanCounter = 0; scanCounter < NUMBER_OF_SCANS; scanCounter++) {
-  scanDistanceBot = botTOF->scanDistanceMM();
-  scanDistanceTop = topTOF->scanDistanceMM();
+    scanDistanceBot = botTOF->scanDistanceMM();
+    scanDistanceTop = topTOF->scanDistanceMM();
     botTOF->debounceDistance(scanDistanceBot, scanDistanceBotAverage);
     topTOF->debounceDistance(scanDistanceTop, scanDistanceTopAverage);
     delay(SCAN_DELAY);
@@ -189,39 +270,47 @@ void Robot::scanBothTOF(){
 }
 
 bool Robot::poleFound() {
-//NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
-//Have a better tolerance with testing
-scanBothTOF();
-Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
-Serial.println("Top AVG: " + String(scanDistanceTopAverage));
+  //NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
+  //Have a better tolerance with testing
+  scanBothTOF();
+  Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
+  Serial.println("Top AVG: " + String(scanDistanceTopAverage));
 
-delay(200);
+  delay(200);
 
-if (scanDistanceBotAverage != 0 && scanDistanceTopAverage != 0){
-  if( (scanDistanceBotAverage >= scanDistanceTopAverage*0.9 && scanDistanceBotAverage <= scanDistanceTopAverage*1.1) || (scanDistanceBotAverage >= scanDistanceTopAverage-50 && scanDistanceBotAverage <= scanDistanceTopAverage+50)   ){ //Or to account for 10% not working well at low values
-    // If both values are within 10% tolerance of eachother, pole found
-    //Pole found
-    linearDistToPole = average(scanDistanceBotAverage,scanDistanceTopAverage) /10; // NEEDS A SCALING FACTOR TO CM VIA TESTING, should just be MM -> CM
-    return true;
-  } else if (scanDistanceBotAverage == 0 && scanDistanceTopAverage > 100){ // If bot errors out, only rely on top 
-    linearDistToPole = scanDistanceTopAverage /10;// NEEDS A SCALING FACTOR TO CM VIA TESTING
+  if (scanDistanceBotAverage > 100) {
+    linearDistToPole = scanDistanceBotAverage / 10;  // NEEDS A SCALING FACTOR TO CM VIA TESTING
     return true;
 
-  } else if (scanDistanceBotAverage > 100 && scanDistanceTopAverage == 0){  // If Top errors out, only rely on top 
-    linearDistToPole = scanDistanceBotAverage /10; // NEEDS A SCALING FACTOR TO CM VIA TESTING
+  } else if (scanDistanceTopAverage > 100) {
+    linearDistToPole = scanDistanceTopAverage / 10;  // NEEDS A SCALING FACTOR TO CM VIA TESTING
     return true;
   }
-}
- return false;
+  // if (scanDistanceBotAverage != 0 && scanDistanceTopAverage != 0){
+  //   if( (scanDistanceBotAverage >= scanDistanceTopAverage*0.8 && scanDistanceBotAverage <= scanDistanceTopAverage*1.2) || (scanDistanceBotAverage >= scanDistanceTopAverage-75 && scanDistanceBotAverage <= scanDistanceTopAverage+75)   ){ //Or to account for 10% not working well at low values
+  //     // If both values are within 10% tolerance of eachother, pole found
+  //     //Pole found
+  //     linearDistToPole = average(scanDistanceBotAverage,scanDistanceTopAverage) /10; // NEEDS A SCALING FACTOR TO CM VIA TESTING, should just be MM -> CM
+  //     return true;
+  //   } else if (scanDistanceBotAverage == 0 && scanDistanceTopAverage > 100){ // If bot errors out, only rely on top
+  //     linearDistToPole = scanDistanceTopAverage /10;// NEEDS A SCALING FACTOR TO CM VIA TESTING
+  //     return true;
+
+  //   } else if (scanDistanceBotAverage > 100 && scanDistanceTopAverage == 0){  // If Top errors out, only rely on top
+  //     linearDistToPole = scanDistanceBotAverage /10; // NEEDS A SCALING FACTOR TO CM VIA TESTING
+  //     return true;
+  //   }
+  // }
+  return false;
 }
 
-void Robot::searchForPole(){  //Assumes pole will always be found during full rotation, can be later optimized to do better scanning algorithm using gyro & to ignore wall
-int scanCounterMax = 72; //360 rotation // temporary full circle for testing assuming 360deg/5deg
-int scanCounter = 0;
-   while(!poleFound() and scanCounter < scanCounterMax){
+void Robot::searchForPole() {  //Assumes pole will always be found during full rotation, can be later optimized to do better scanning algorithm using gyro & to ignore wall
+  int scanCounterMax = 72;     //360 rotation // temporary full circle for testing assuming 360deg/5deg
+  int scanCounter = 0;
+  while (!poleFound() and scanCounter < scanCounterMax) {
     Serial.println("Turning to scan " + String(scanCounter));
-    leftTurnStationaryUsingEncoder(10); // 650 ~ 1 rotation
+    leftTurnStationaryUsingEncoder(50);  // 650 ~ 1 rotation
     scanCounter++;
-    delay(500); //shorten post testing
-   }
+    delay(500);  //shorten post testing
+  }
 }

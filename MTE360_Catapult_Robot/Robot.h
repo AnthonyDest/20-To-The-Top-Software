@@ -16,6 +16,9 @@ public:
   Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder);
   Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder, TOFSensor &botTOF, TOFSensor &topTOF);
 
+ 
+
+
   void allConfiguration();  //Used to configure everything
 
   //zzDrive robot fwd, customize speed and time?) - speed only for now, all will have a 5 second oh shit timmer
@@ -37,7 +40,12 @@ public:
 
   void leftTurnStationaryUsingEncoder(float angle);
   void rightTurnStationaryUsingEncoder(float angle);
-  void travelledDistanceUsingEncoder(float angle);
+  void travelledDistanceUsingEncoder(float steps);
+  
+  void travelledDistanceUsingEncoder(float stepToTravel, int speed);
+
+  void testPIDDriveEncoderStepCount(double stepToTravel);
+  
 
 
   //Determine specifc slowing down rate (should be full stp[?])
@@ -57,7 +65,7 @@ public:
 
   uint16_t linearDistToPole = 0;
 
-private:
+// private:
 
   float average(float inputA, float inputB);
 

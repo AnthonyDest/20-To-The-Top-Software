@@ -71,10 +71,10 @@ void Encoder::resetTripCounter(){
 }
 
 
-float Encoder::getDistanceCM() { //fix
+float Encoder::getDistanceMM() { //fix
   // Serial.println(float(stepCounter) / float(stepsPerWheelRotation));
   // return ((stepCounter / float(stepsPerWheelRotation) )* float(wheelDiamMM) * float(3.14159 / 10));  // replace pi with math library
-  return (float(stepCounter) / float(stepsPerWheelRotation));
+  return (float(stepCounter) * float(MM_PER_STEP));
 }
 void Encoder::getMotorDirection() {}  // can use encoder to sample motor and verify rotation
 
@@ -84,8 +84,8 @@ float Encoder::getTurnAngle(){
     stepCounterForTurning = stepCounter;
   }
 
-  return (stepCounter - stepCounterForTurning)/stepsPerWheelRotation; // Gets Delta steps, multiply by [angle/steps] to get angle rotated. Might be backwards
-
+  // return (stepCounter - stepCounterForTurning)/stepsPerWheelRotation; // Gets Delta steps, multiply by [angle/steps] to get angle rotated. Might be backwards
+  return 0;
 }
 
 

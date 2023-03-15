@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "Rotary.h"
 #include "Encoder.h"
+#include "ArduPID.h"
 
 #define FORWARD_DIR 1
 #define BACKWARD_DIR -1
@@ -18,11 +19,21 @@
 #define SPEEDDELAY 50
 #define TURN_SPEED 50
 
-class Motor {
+class Motor: public ArduPID {
 public:
   // Constructor. Mainly sets up pins.
   Motor();
+  // Motor(int DIRpin, int PWMpin, int DirectionInvert);
+
   Motor(int DIRpin, int PWMpin, int DirectionInvert);
+
+double p = 2;
+double i = 2;
+double d = 2;
+
+  void setupPID(double &input, double &output, double &setpoint);
+
+  void testPIDDriveEncoderStepCount(int stepToTravel);
 
   // Drive in direction given by sign, at speed given by magnitude of the
   //parameter.

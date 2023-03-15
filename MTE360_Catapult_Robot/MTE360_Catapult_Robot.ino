@@ -35,12 +35,12 @@ TOFSensor topTOF;
 int temp = 0; 
 int dist = 0;                                     
 // Robot mBot(leftMotor, rightMotor);
-// Robot meBot(leftMotor, rightMotor, leftEncoder, rightEncoder);
+//  Robot meBot(leftMotor, rightMotor, leftEncoder, rightEncoder);
 Robot mesBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF);
 void setup() {
   Serial.begin(115200);
   while (!Serial) {}
-  Serial.println("\nSTART---------------------------");
+  // Serial.println("\nSTART---------------------------");
 
   attachInterrupt(ENCA_M1, updateLeftEncoder, CHANGE);
   attachInterrupt(ENCB_M1, updateLeftEncoder, CHANGE);
@@ -48,6 +48,12 @@ void setup() {
   attachInterrupt(ENCB_M2, updateRightEncoder, CHANGE);
 
   mesBot.allConfiguration();
+
+  state = 0;
+  // rightMotor.drive(255, 1);
+
+  // delay(500);
+  //     leftMotor.drive(255, 1);
 }
 
 void updateLeftEncoder() {
@@ -58,33 +64,95 @@ void updateRightEncoder() {
 }
 
 void loop() {   //state machine
-//  Serial.println("TIME: " + String(millis()));
+  // Serial.println("TIME: " + String(millis()));
 
-  if (state == 5){
-    Serial.println("Getting ready");
-    delay(500); //change delay to a "wait"
-    state++;
-  }
+  //  mesBot.scanBothTOF();
 
-  if (state == 1){
-    Serial.println("Searching for pole");
-    mesBot.searchForPole();
-    delay(2000);
-    state++;
-  }
+  // Serial.println(mesBot.scanDistanceBotAverage);
+  // Serial.println(mesBot.scanDistanceTopAverage);
 
-  if (state == 2){
-    Serial.println("Driving to pole, distance of [CM]: " + String(mesBot.linearDistToPole));
-    delay(500);
-    mesBot.forwardDriveDistance(100,mesBot.linearDistToPole);
-    delay(500);
-    state++;
-  }
+  // delay(300);
+// leftMotor.fwd(100);
+// rightMotor.fwd(100);
 
-  if (state == 3){
-  }
 
- delay(500);
+if (state == 0){
+  // Serial.println("STARTING");
+  delay(500);
+  state++;
+}
+
+
+if (state == 1){
+  // Serial.println("Drive");
+  // mesBot.travelledDistanceUsingEncoder(2000,50);
+  // mesBot.testPIDDriveEncoderStepCount(2000);
+  mesBot.searchForPole();
+  delay(2000);
+  state++;
+}
+
+if (state == 2){
+  // Serial.println("Stop");
+  // meBot.testPIDDriveEncoderStepCount(600);
+  // leftMotor.brake();
+
+  Serial.println("DRIVE: "  + String(mesBot.linearDistToPole / MM_PER_STEP));
+  mesBot.testPIDDriveEncoderStepCount(mesBot.linearDistToPole / MM_PER_STEP);
+  delay(2000);
+  state++;
+}
+
+if (state == 3){
+  // Serial.println("Reset");
+  // meBot.testPIDDriveEncoderStepCount(600);
+  delay(500);
+  state=0;
+}
+
+
+delay(2000);
+
+      // mesBot.forwardDrive(255);
+      
+  //  mesBot.scanBothTOF();
+
+  // Serial.println(mesBot.scanDistanceBotAverage);
+  // Serial.println(mesBot.scanDistanceTopAverage);
+
+  // delay(300);
+
+//  if (state == 7){
+
+//     mesBot.forwardDrive(250);
+// state++;
+//  }
+//   if (state == 5){
+//     Serial.println("Getting ready");
+//     delay(500); //change delay to a "wait"
+//     state++;
+//   }
+
+//   if (state == 1){
+//     Serial.println("Searching for pole");
+//     mesBot.searchForPole();
+//     Serial.println("Pole found pole");
+//     // delay(2000);
+//     state++;
+//   }
+
+//   if (state == 2){
+//     Serial.println("Driving to pole, distance of [CM]: " + String(mesBot.linearDistToPole));
+//     delay(500);
+//     mesBot.forwardDriveDistance(100,mesBot.linearDistToPole);
+//     delay(500);
+//     state++;
+//   }
+
+//   if (state == 3){
+//   }
+
+//  delay(500);
 
 //testing enc steps
 // Serial.println(leftEncoder.stepCounter);

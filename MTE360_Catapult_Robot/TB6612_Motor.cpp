@@ -4,19 +4,42 @@
 #include <Arduino.h>
 #include "Encoder.h"
 
-Motor::Motor() {}
+Motor::Motor():ArduPID() {
+}
 
-Motor::Motor(int _DIR, int _PWM, int _DirectionInvert) {
+// Motor::Motor(int _DIR, int _PWM, int _DirectionInvert) {
+//   DIR = _DIR;
+//   PWM = _PWM;
+//   // Standby = STBYpin;
+//   DirectionInvert = _DirectionInvert;
+
+//   pinMode(DIR, OUTPUT);
+//   pinMode(PWM, OUTPUT);
+//   // Serial.begin(9600);
+//   // pinMode(Standby, OUTPUT);
+// }
+
+
+Motor::Motor(int _DIR, int _PWM, int _DirectionInvert):ArduPID(){
   DIR = _DIR;
   PWM = _PWM;
-  // Standby = STBYpin;
   DirectionInvert = _DirectionInvert;
-
   pinMode(DIR, OUTPUT);
   pinMode(PWM, OUTPUT);
-  // Serial.begin(9600);
-  // pinMode(Standby, OUTPUT);
+
 }
+
+
+void Motor::setupPID(double &input, double &output, double &setpoint){
+
+  begin(&input, &output, &setpoint, p, i, d);
+  setOutputLimits(30, 200);
+  // setBias(255.0 / 2.0);
+  setBias(100.0 / 2.0);
+  setWindUpLimits(-10, 10); // Groth bounds for the integral term to prevent integral wind-up
+  start();
+  }
+
 
 //may want to remove while if the time is too long
 void Motor::speedUp(int desiredSpeed, int direction) {
@@ -80,11 +103,23 @@ void Motor::drive(int desiredSpeed, int direction) {
 
   if (abs(curSpeed) > abs(desiredSpeed)) {  // slowing down
 
-    slowDown(desiredSpeed, direction);
+    // slowDown(desiredSpeed, direction);
+
+    if (direction == FORWARD_DIR) {
+      fwd(desiredSpeed);
+    } else {
+      rev(desiredSpeed);
+    }
 
   } else if (abs(curSpeed) < abs(desiredSpeed)) {  // speeding up
 
-    speedUp(desiredSpeed, direction);
+    // speedUp(desiredSpeed, direction);
+
+    if (direction == FORWARD_DIR) {
+      fwd(desiredSpeed);
+    } else {
+      rev(desiredSpeed);
+    }
   }
 }
 
@@ -115,7 +150,7 @@ void Motor::brake() {
   // stopped state?
   // digitalWrite(In1, HIGH);
   // digitalWrite(In2, HIGH);
-  slowDown(0, curDirState);
+  // slowDown(0, curDirState);
   analogWrite(PWM, 0);
 }
 
