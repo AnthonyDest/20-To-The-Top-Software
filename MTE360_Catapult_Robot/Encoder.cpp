@@ -1,7 +1,7 @@
 #include "variant.h"
 #include "Encoder.h"
 #include <Arduino.h>
-#include "Rotary.h"
+// #include "Rotary.h"
 
 Encoder::Encoder() {}
 

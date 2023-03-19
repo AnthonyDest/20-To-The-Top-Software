@@ -30,10 +30,10 @@ Motor::Motor(int _DIR, int _PWM, int _DirectionInvert):ArduPID(){
 }
 
 
-void Motor::setupPID(double &input, double &output, double &setpoint){
-
+// void Motor::setupPID(double &input, double &output, double &setpoint, double p, double i, double d){
+void Motor::setupPID(double &input, double &output, double &setpoint, double &maxSpeed){
   begin(&input, &output, &setpoint, p, i, d);
-  setOutputLimits(30, 200);
+  setOutputLimits(30, maxSpeed);
   // setBias(255.0 / 2.0);
   setBias(100.0 / 2.0);
   setWindUpLimits(-10, 10); // Groth bounds for the integral term to prevent integral wind-up
@@ -101,27 +101,34 @@ void Motor::drive(int desiredSpeed, int direction) {
 
   direction = direction * DirectionInvert;
 
-  if (abs(curSpeed) > abs(desiredSpeed)) {  // slowing down
-
-    // slowDown(desiredSpeed, direction);
-
-    if (direction == FORWARD_DIR) {
+if (direction == FORWARD_DIR) {
       fwd(desiredSpeed);
-    } else {
+    } else if (direction == BACKWARD_DIR) {
       rev(desiredSpeed);
     }
-
-  } else if (abs(curSpeed) < abs(desiredSpeed)) {  // speeding up
-
-    // speedUp(desiredSpeed, direction);
-
-    if (direction == FORWARD_DIR) {
-      fwd(desiredSpeed);
-    } else {
-      rev(desiredSpeed);
-    }
-  }
 }
+
+  // if (abs(curSpeed) > abs(desiredSpeed)) {  // slowing down
+
+  //   // slowDown(desiredSpeed, direction);
+
+  //   if (direction == FORWARD_DIR) {
+  //     fwd(desiredSpeed);
+  //   } else {
+  //     rev(desiredSpeed);
+  //   }
+
+  // } else if (abs(curSpeed) < abs(desiredSpeed)) {  // speeding up
+
+  //   // speedUp(desiredSpeed, direction);
+
+  //   if (direction == FORWARD_DIR) {
+  //     fwd(desiredSpeed);
+  //   } else {
+  //     rev(desiredSpeed);
+  //   }
+  // }
+// }-
 
 int Motor::getMotorDir() {
   return curDirState;

@@ -2,7 +2,7 @@
 #define Encoder_h
 
 #include <Arduino.h>
-#include "Rotary.h"
+// #include "Rotary.h"
 
 // #define CMperStep (float(wheelDiamMM)/10)*3.14159/float(stepsPerWheelRotation) //get actual values here once finalized
 // #define CM_TO_STEPS (3.14159*80/10)/()
@@ -39,7 +39,7 @@ public:
 
  private:
 
-  Rotary rotary;
+  // Rotary rotary;
   unsigned char rotaryDirection;
 
   int aCurrentState;

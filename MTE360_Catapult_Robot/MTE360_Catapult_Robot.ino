@@ -1,15 +1,13 @@
 #include "Robot.h"
 #include "Encoder.h"
-#include "Rotary.h"
 #include "TOFSensor.h"
 #include <Arduino.h>
 #include <Wire.h>
 #include "ICM_20948.h"
-#include "Adafruit_VL53L0X.h"
 
-#define DIR1_M1 11   // LEFT
+#define DIR1_M1 12   // LEFT
 #define DIR1_M2 6  // RIGHT
-#define PWM_M1 12   // LEFT
+#define PWM_M1 11   // LEFT
 #define PWM_M2 10  // RIGHT
 
 // Pins for encoder
@@ -39,7 +37,7 @@ int dist = 0;
 Robot mesBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF);
 void setup() {
   Serial.begin(115200);
-  while (!Serial) {}
+  // while (!Serial) {}
   // Serial.println("\nSTART---------------------------");
 
   attachInterrupt(ENCA_M1, updateLeftEncoder, CHANGE);
@@ -50,6 +48,9 @@ void setup() {
   mesBot.allConfiguration();
 
   state = 0;
+  Serial.println("START");
+  pinMode(20, OUTPUT);
+  pinMode(21, OUTPUT);
   // rightMotor.drive(255, 1);
 
   // delay(500);
@@ -64,8 +65,11 @@ void updateRightEncoder() {
 }
 
 void loop() {   //state machine
-  // Serial.println("TIME: " + String(millis()));
-
+  //  Serial.println("TIME: " + String(millis()));
+  // leftMotor.fwd(250);
+  // rightMotor.fwd(250);
+//   digitalWrite(20, HIGH);
+//  digitalWrite(21, HIGH);
   //  mesBot.scanBothTOF();
 
   // Serial.println(mesBot.scanDistanceBotAverage);
@@ -74,17 +78,33 @@ void loop() {   //state machine
   // delay(300);
 // leftMotor.fwd(100);
 // rightMotor.fwd(100);
-
+// Serial.println("Start");
+// delay(10000);
+// mesBot.testPIDDriveEncoderStepCount(50);
+// // mesBot.forwardDrive(30);
+// delay(5000);
+// mesBot.testPIDDriveEncoderStepCount(500);
+// // mesBot.brake();
+// delay(5000);
+// mesBot.testPIDDriveEncoderStepCount(5000);
+// delay(30000);
 
 if (state == 0){
   // Serial.println("STARTING");
-  delay(500);
+  for (int i = 0; i<8; i++) {
+  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+  delay(200);                      // wait for a second
+  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+  delay(200);     
+  }
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
   state++;
 }
 
 
 if (state == 1){
-  // Serial.println("Drive");
+  //  Serial.println("Drive");
   // mesBot.travelledDistanceUsingEncoder(2000,50);
   // mesBot.testPIDDriveEncoderStepCount(2000);
   mesBot.searchForPole();
@@ -98,7 +118,7 @@ if (state == 2){
   // leftMotor.brake();
 
   // Serial.println("DRIVE: "  + String(mesBot.linearDistToPole / MM_PER_STEP));
-  mesBot.testPIDDriveEncoderStepCount(mesBot.linearDistToPole / MM_PER_STEP);
+   mesBot.forwardDrivePID(mesBot.linearDistToPole / MM_PER_STEP); // /mm per step = * step per mm
   delay(2000);
   state++;
 }
@@ -106,6 +126,12 @@ if (state == 2){
 if (state == 3){
   // Serial.println("Reset");
   // meBot.testPIDDriveEncoderStepCount(600);
+   for (int i = 0; i<10; i++) {
+  digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
+  delay(1000);                      // wait for a second
+  digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
+  delay(1000);        
+  }
   delay(500);
   state=0;
 }

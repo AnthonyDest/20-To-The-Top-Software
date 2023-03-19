@@ -2,7 +2,7 @@
 #define TB6612_Motor_h
 
 #include <Arduino.h>
-#include "Rotary.h"
+// #include "Rotary.h"
 #include "Encoder.h"
 #include "ArduPID.h"
 
@@ -27,13 +27,14 @@ public:
 
   Motor(int DIRpin, int PWMpin, int DirectionInvert);
 
-double p = 2;
-double i = 2;
-double d = 2;
+double p = 16.2039;
+double i = 20.2906;
+double d = 0;
 
-  void setupPID(double &input, double &output, double &setpoint);
+  // void setupPID(double &input, double &output, double &setpoint, double p, double i, double d);
+    void setupPID(double &input, double &output, double &setpoint, double &maxSpeed);
 
-  void testPIDDriveEncoderStepCount(int stepToTravel);
+
 
   // Drive in direction given by sign, at speed given by magnitude of the
   //parameter.

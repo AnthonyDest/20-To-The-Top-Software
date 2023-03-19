@@ -4,6 +4,8 @@
 #include "TB6612_Motor.h"
 #include "Encoder.h"
 #include "TOFSensor.h"
+#include "Adafruit_VL53L0X.h"
+#include "Gyro.h"
 
 class Robot {
 public:
@@ -15,8 +17,7 @@ public:
   Robot(Motor &leftMotor, Motor &rightMotor);
   Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder);
   Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder, TOFSensor &botTOF, TOFSensor &topTOF);
-
- 
+  Robot(Motor &leftMotor, Motor &rightMotor, Encoder &leftEncoder, Encoder &rightEncoder, TOFSensor &botTOF, TOFSensor &topTOF, Gyro &gyro);
 
 
   void allConfiguration();  //Used to configure everything
@@ -38,15 +39,18 @@ public:
   void rightTurnStationary(int speed);
   //void rightTurn();
 
-  void leftTurnStationaryUsingEncoder(float angle);
-  void rightTurnStationaryUsingEncoder(float angle);
-  void travelledDistanceUsingEncoder(float steps);
-  
-  void travelledDistanceUsingEncoder(float stepToTravel, int speed);
+  // void leftTurnStationaryUsingEncoder(float angle);
+  // void rightTurnStationaryUsingEncoder(float angle);
+  // void travelledDistanceUsingEncoder(float steps);
+  // void travelledDistanceUsingEncoder(float stepToTravel, int speed);
+  // void testPIDDriveEncoderStepCount(double stepToTravel);
 
-  void testPIDDriveEncoderStepCount(double stepToTravel);
-  
-
+  void leftTurnStationaryPID(double steps);
+  void rightTurnStationaryPID(double steps);
+  void forwardDrivePID(double steps);
+  void reverseDrivePID(double steps);
+  //private
+  //void drivePID(double steps, int leftMotorDir, int rightMotorDir);
 
   //Determine specifc slowing down rate (should be full stp[?])
   void brake();
@@ -58,6 +62,8 @@ public:
 
   // TOF Sensor
 
+double getOrientationAngle();
+
   void Setup_TOF_Address();
   void scanBothTOF();
   bool poleFound(); //aka poleFound check if facing pole
@@ -65,9 +71,10 @@ public:
 
   uint16_t linearDistToPole = 0;
 
-// private:
+ private:
 
   float average(float inputA, float inputB);
+  void drivePID(double steps, int leftMotorDir, int rightMotorDir, double maxSpeed);
 
   Motor *leftMotor;
   Motor *rightMotor;
@@ -75,6 +82,7 @@ public:
   Encoder *rightEncoder;
   TOFSensor *botTOF;
   TOFSensor *topTOF;
+  Gyro *gyro;
 
   uint16_t scanDistanceBot = 0, scanDistanceTop = 0;
   uint16_t scanDistanceBotAverage = 0, scanDistanceTopAverage = 0;

@@ -1,3 +1,4 @@
+#include "delay.h"
 #include "Robot.h"
 
 Robot::Robot(){};
@@ -26,64 +27,97 @@ Robot::Robot(Motor &_leftMotor, Motor &_rightMotor, Encoder &_leftEncoder, Encod
   topTOF = &_topTOF;
 }
 
-
-void Robot::travelledDistanceUsingEncoder(float stepToTravel, int speed) {
-  //keep turning while angle needed < cur angle + tol
-  double deltaLeft = 0;  // fix temp storage
-  double deltaRight = 0;
-  leftEncoder->resetTripCounter();
-  rightEncoder->resetTripCounter();
-
-  // rightMotor->setupPID(deltaRight, speed, stepToTravel);
-  // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
-
-  //only going fwd for now, rev is fwd based on wiring
-  leftMotor->rev(speed);
-  rightMotor->rev(speed);
-
-  while (stepToTravel > average(deltaLeft, deltaRight)) {
-    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
-    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
-    // leftMotor->compute();
-    // rightMotor->compute();
-
-    // leftMotor->rev(speed);
-    // rightMotor->rev(speed);
-  }
-  leftMotor->brake();
-  rightMotor->brake();
+Robot::Robot(Motor &_leftMotor, Motor &_rightMotor, Encoder &_leftEncoder, Encoder &_rightEncoder, TOFSensor &_botTOF, TOFSensor &_topTOF, Gyro &_gyro) {
+  leftMotor = &_leftMotor;
+  rightMotor = &_rightMotor;
+  leftEncoder = &_leftEncoder;
+  rightEncoder = &_rightEncoder;
+  botTOF = &_botTOF;
+  topTOF = &_topTOF;
+  gyro = &_gyro;
 }
 
+// void Robot::travelledDistanceUsingEncoder(float stepToTravel, int speed) {
+//   //keep turning while angle needed < cur angle + tol
+//   double deltaLeft = 0;  // fix temp storage
+//   double deltaRight = 0;
+//   leftEncoder->resetTripCounter();
+//   rightEncoder->resetTripCounter();
 
-void Robot::testPIDDriveEncoderStepCount(double stepToTravel) {  // left wheel only
-  double speedLeft = 0;
-  double speedRight = 0;  
-  double deltaLeft = 0;  // fix temp storage
-  double deltaRight = 0;
-  leftEncoder->resetTripCounter();
-  rightEncoder->resetTripCounter();
+//   // rightMotor->setupPID(deltaRight, speed, stepToTravel);
+//   // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
 
-  leftMotor->setupPID(deltaLeft, speedLeft, stepToTravel);
-  rightMotor->setupPID(deltaRight, speedRight, stepToTravel);
+//   //only going fwd for now, rev is fwd based on wiring
+//   leftMotor->rev(speed);
+//   rightMotor->rev(speed);
 
-  while (stepToTravel > average(deltaLeft, deltaRight)) {
-    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
-    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
-    //  Serial.println("Steps travel: " + String(deltaSteps) +  "Speed: " + String(speed));
-    leftMotor->compute();
-    leftMotor->rev(speedLeft);
-    rightMotor->compute();
-    rightMotor->rev(speedRight);
+//   while (stepToTravel > average(deltaLeft, deltaRight)) {
+//     deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+//     deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+//     // leftMotor->compute();
+//     // rightMotor->compute();
 
-  }
-  leftMotor->brake();
-  leftMotor->stop();
-  rightMotor->brake();
-  rightMotor->stop();
-}
+//     // leftMotor->rev(speed);
+//     // rightMotor->rev(speed);
+//   }
+//   leftMotor->brake();
+//   rightMotor->brake();
+// }
+
+
+// void Robot::testPIDDriveEncoderStepCount(double stepToTravel) {  // left wheel only
+//   double speedLeft = 0;
+//   double speedRight = 0;  
+//   double deltaLeft = 0;  // fix temp storage
+//   double deltaRight = 0;
+
+
+//    double p_left = 16.2039/2;
+//    double i_left = 20.2906;
+//   // double p_right = 1;
+//   // double i_right = 20.2906;
+//   double d= 0;
+//   double startTime = 0;
+//   leftEncoder->resetTripCounter();
+//   rightEncoder->resetTripCounter();
+  
+//   leftMotor->setupPID(deltaLeft, speedLeft, stepToTravel, p_left, i_left, 0);
+//   rightMotor->setupPID(deltaRight, speedRight, stepToTravel, p_left, i_left, 0);
+
+//   startTime = millis();
+//   while (stepToTravel > average(deltaLeft, deltaRight)) {
+//     deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+//     deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+//     //  Serial.println("Steps travel: " + String(deltaSteps) +  "Speed: " + String(speed));
+//     // Serial.print("Setpoint:");
+//     // Serial.print(stepToTravel);
+//     // Serial.print(",");
+//     // Serial.print("DistTravel:");
+//     // Serial.print(deltaLeft);
+//     // Serial.print(",");
+//     // Serial.print("Speed:");
+//     // Serial.println(speedLeft);
+//     Serial.print(String(startTime - millis()) + ",");
+//     Serial.println(String(deltaRight));
+//     Serial.print(",");
+//     Serial.println(String(speedRight));
+
+//     leftMotor->compute();
+//     leftMotor->rev(speedLeft);
+//     rightMotor->compute();
+//     rightMotor->rev(speedRight);
+
+//   }
+//   leftMotor->brake();
+//   leftMotor->stop();
+//   rightMotor->brake();
+//   rightMotor->stop();
+// }
+
 
 void Robot::allConfiguration() {
-  Setup_TOF_Address();
+   Setup_TOF_Address();
+   gyro->setup();
 }
 
 //Drive forward
@@ -134,42 +168,37 @@ void Robot::rightTurnStationary(int speed) {
 //   rightMotor->brake();
 // }
 
-void Robot::leftTurnStationaryUsingEncoder(float encSteps) {  // can maybe use L/R turn stationary commands but speed should be slow enough and very custom so not significant
-  // leftMotor->drive(TURN_SPEED, BACKWARD_DIR);
-  // rightMotor->drive(TURN_SPEED, FORWARD_DIR);
-  // travelledDistanceUsingEncoder(encSteps, 50);
+// void Robot::leftTurnStationaryUsingEncoder(float encSteps) {  // can maybe use L/R turn stationary commands but speed should be slow enough and very custom so not significant
+//   // leftMotor->drive(TURN_SPEED, BACKWARD_DIR);
+//   // rightMotor->drive(TURN_SPEED, FORWARD_DIR);
+//   // travelledDistanceUsingEncoder(encSteps, 50);
 
-double deltaLeft = 0;  // fix temp storage
-  double deltaRight = 0;
-  leftEncoder->resetTripCounter();
-  rightEncoder->resetTripCounter();
+// double deltaLeft = 0;  // fix temp storage
+//   double deltaRight = 0;
+//   leftEncoder->resetTripCounter();
+//   rightEncoder->resetTripCounter();
 
-  // rightMotor->setupPID(deltaRight, speed, stepToTravel);
-  // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
+//   // rightMotor->setupPID(deltaRight, speed, stepToTravel);
+//   // leftMotor->setupPID(deltaLeft, speed, stepToTravel);
 
-  //only going fwd for now, rev is fwd based on wiring
-  leftMotor->fwd(50);
-  rightMotor->rev(50);
+//   //only going fwd for now, rev is fwd based on wiring
+//   leftMotor->fwd(50);
+//   rightMotor->rev(50);
 
-  while (encSteps > average(deltaLeft, deltaRight)) {
-    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
-    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
-    // leftMotor->compute();
-    // rightMotor->compute();
+//   while (encSteps > average(deltaLeft, deltaRight)) {
+//     deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+//     deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+//     // leftMotor->compute();
+//     // rightMotor->compute();
 
-    // leftMotor->rev(speed);
-    // rightMotor->rev(speed);
-  }
-  leftMotor->brake();
-  rightMotor->brake();
+//     // leftMotor->rev(speed);
+//     // rightMotor->rev(speed);
+//   }
+//   leftMotor->brake();
+//   rightMotor->brake();
 
-}
+// }
 
-void Robot::rightTurnStationaryUsingEncoder(float encSteps) {
-  leftMotor->drive(TURN_SPEED, FORWARD_DIR);
-  rightMotor->drive(TURN_SPEED, BACKWARD_DIR);
-  travelledDistanceUsingEncoder(encSteps, 50);
-}
 
 // void Robot::travelledDistanceUsingEncoder(float encSteps) {
 //   //keep turning while angle needed < cur angle + tol
@@ -197,42 +226,89 @@ void Robot::brake() {
   rightMotor->brake();
 }
 
-void Robot::forwardDriveDistance(int speed, float distanceMM) {  //currently steps
 
-  leftMotor->drive(speed, FORWARD_DIR);
-  rightMotor->drive(speed, FORWARD_DIR);
+void Robot::drivePID(double stepToTravel, int leftMotorDir, int rightMotorDir, double maxSpeed) {
+  //keep turning while angle needed < cur angle + tol
+  double deltaLeft = 0;  // fix temp storage
+  double deltaRight = 0;
+  double leftMotorSpeed = 0;
+  double rightMotorSpeed = 0;
 
-  // Serial.println(distanceCM * rightEncoder->CM_TO_STEPS);
-  // travelledDistanceUsingEncoder((distanceCM)*0.80 - 100);
-  // travelledDistanceUsingEncoder(distanceCM- speed); // WILL NEED CALIBRATION
-  travelledDistanceUsingEncoder(distanceMM / MM_PER_STEP);  // WILL NEED CALIBRATION
-    // delay(5000);
-    // travelledDistanceUsingEncoder(distanceCM * rightEncoder->CM_TO_STEPS);
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+  leftMotor->setupPID(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
+  rightMotor->setupPID(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
 
-
-
-  // initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
-  // // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
-  // forwardDrive(speed);
-
-  // while (distanceCM >= currentDistanceTravelled) {
-  //   currentDistanceTravelled = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance;
-  // }
-  // currentDistanceTravelled = 0;
-  // brake();  // will stop currently for testing, but this can be removed later to optimize
-}
-
-void Robot::reverseDriveDistance(int speed, float distanceCM) {
-  initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
-  // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
-  backwardDrive(speed);
-
-  while (distanceCM >= currentDistanceTravelled) {
-    currentDistanceTravelled = abs(average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance);
+  while (stepToTravel > average(deltaLeft, deltaRight)) {
+    deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
+    deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
+    leftMotor->drive(leftMotorSpeed, leftMotorDir);
+    rightMotor->drive(rightMotorSpeed, rightMotorDir);
+    leftMotor->compute();
+    rightMotor->compute();
   }
-  currentDistanceTravelled = 0;
-  brake();  // will stop currently for testing, but this can be removed later to optimize
+  leftMotor->brake();
+  rightMotor->brake();
 }
+
+void Robot::leftTurnStationaryPID(double stepsToTurn){
+drivePID(stepsToTurn, BACKWARD_DIR, FORWARD_DIR, 50);
+}
+void Robot::rightTurnStationaryPID(double stepsToTurn){
+drivePID(stepsToTurn, FORWARD_DIR, BACKWARD_DIR, 50);
+}
+void Robot::forwardDrivePID(double stepsToDrive){
+drivePID(stepsToDrive, FORWARD_DIR, FORWARD_DIR, 250);
+}
+void Robot::reverseDrivePID(double stepsToDrive){
+drivePID(stepsToDrive, BACKWARD_DIR, BACKWARD_DIR, 250);
+}
+
+// void Robot::forwardDriveDistance(int speed, float distanceMM) {  //currently steps
+
+//   leftMotor->drive(speed, FORWARD_DIR);
+//   rightMotor->drive(speed, FORWARD_DIR);
+
+//   // Serial.println(distanceCM * rightEncoder->CM_TO_STEPS);
+//   // travelledDistanceUsingEncoder((distanceCM)*0.80 - 100);
+//   // travelledDistanceUsingEncoder(distanceCM- speed); // WILL NEED CALIBRATION
+//   // travelledDistanceUsingEncoder(distanceMM / MM_PER_STEP);  // WILL NEED CALIBRATION
+//     // delay(5000);
+//     // travelledDistanceUsingEncoder(distanceCM * rightEncoder->CM_TO_STEPS);
+
+
+
+//   // initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
+//   // // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
+//   // forwardDrive(speed);
+
+//   // while (distanceCM >= currentDistanceTravelled) {
+//   //   currentDistanceTravelled = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance;
+//   // }
+//   // currentDistanceTravelled = 0;
+//   // brake();  // will stop currently for testing, but this can be removed later to optimize
+// }
+
+// void Robot::reverseDriveDistance(int speed, float distanceCM) {
+//   initialDistance = average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM());  // do we get average and compare end result avg, or do we just monitor each independently
+//   // eg: change to leftInital, rightInital. Distance travelled = average(DeltaLeft, DeltaRight) ?
+//   backwardDrive(speed);
+
+//   while (distanceCM >= currentDistanceTravelled) {
+//     currentDistanceTravelled = abs(average(leftEncoder->getDistanceMM(), rightEncoder->getDistanceMM()) - initialDistance);
+//   }
+//   currentDistanceTravelled = 0;
+//   brake();  // will stop currently for testing, but this can be removed later to optimize
+// }
+
+
+double Robot::getOrientationAngle(){//will need a polling function
+
+  double angle = gyro->getTurnAngle();
+  Serial.println(String(angle));
+  return angle;
+}
+
 
 float Robot::average(float inputA, float inputB) {
   return (inputA + inputB) / 2;
@@ -311,7 +387,8 @@ void Robot::searchForPole() {  //Assumes pole will always be found during full r
   int scanCounter = 0;
   while (!poleFound() and scanCounter < scanCounterMax) {
     // Serial.println("Turning to scan " + String(scanCounter));
-    leftTurnStationaryUsingEncoder(50);  // 650 ~ 1 rotation (?)
+    // leftTurnStationaryUsingEncoder(50);  // 650 ~ 1 rotation (?)
+    leftTurnStationaryPID(50);
     scanCounter++;
     delay(500);  //shorten post testing
   }
