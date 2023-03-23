@@ -5,7 +5,7 @@
 #include "Adafruit_VL53L0X.h"
 
 #define RESET_PIN 5
-#define topTOFAddress 0x31
+#define topTOFAddress 0x30
 
 #define SCAN_DELAY 50
 #define NUMBER_OF_SCANS 5

@@ -11,7 +11,7 @@ if(!begin()) {
     Serial.println(F("Failed to boot Second VL53L0X"));
     while(1);
   } else{
-    //  Serial.println(F("Two Good"));
+      Serial.println(F("Two Good"));
   }
 }
 
@@ -20,7 +20,7 @@ if(!begin(new_addr)) {
     Serial.println(F("Failed to boot First VL53L0X"));
     while(1);
   } else{
-    //  Serial.println(F("One Good"));
+      Serial.println(F("One Good"));
   }
 }
 
@@ -49,7 +49,7 @@ void TOFSensor::debounceDistance(uint16_t &scanDistance, uint16_t &scanDistanceA
       if(scanDistanceAverage == 0){
         scanDistanceAverage = scanDistance;
       } else {
-        scanDistanceAverage = average(scanDistanceAverage, scanDistance) * cos(radians(28));
+        scanDistanceAverage = average(scanDistanceAverage, scanDistance) ;
       }
   }
 }

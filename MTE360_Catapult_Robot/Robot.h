@@ -7,6 +7,11 @@
 #include "Adafruit_VL53L0X.h"
 #include "Gyro.h"
 
+#include <SPI.h>
+#include <SD.h>
+
+
+
 class Robot {
 public:
 
@@ -47,8 +52,8 @@ public:
 
   void leftTurnStationaryPID(double steps);
   void rightTurnStationaryPID(double steps);
-  void forwardDrivePID(double steps);
-  void reverseDrivePID(double steps);
+  void forwardDrivePID(double distanceMM);
+  void reverseDrivePID(double distanceMM);
   //private
   //void drivePID(double steps, int leftMotorDir, int rightMotorDir);
 
@@ -58,6 +63,9 @@ public:
   void forwardDriveDistance(int speed, float distanceCM);
   void reverseDriveDistance(int speed, float distanceCM);
 
+  void turnToHeading(double heading);
+  void driveForwardAtCurrentHeading(double distanceMM);
+  
   // void forwardDriveDistanceENCMonitor(int speed, float distanceCM);
 
   // TOF Sensor
@@ -70,7 +78,9 @@ double getOrientationAngle();
   void searchForPole();
 
   uint16_t linearDistToPole = 0;
+bool driveDistanceTracking(double distanceCM);
 
+void turnDeltaAngleGyro(double angle, int leftDir, int rightDir);
  private:
 
   float average(float inputA, float inputB);
@@ -88,6 +98,15 @@ double getOrientationAngle();
   uint16_t scanDistanceBotAverage = 0, scanDistanceTopAverage = 0;
   int scanCounter;
 
+  double deltaLeft = 0; 
+  double deltaRight = 0;
+  double averageSteps = 0;
+  double bootlegPIDRamp = 0;
+
   float initialDistance = 0, currentDistanceTravelled = 0;
+
+  File fileSD;
+  void setupSDCard();
+  void log(String dataToLog);
 };
 #endif

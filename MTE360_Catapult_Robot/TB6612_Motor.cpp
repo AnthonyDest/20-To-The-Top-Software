@@ -101,6 +101,12 @@ void Motor::drive(int desiredSpeed, int direction) {
 
   direction = direction * DirectionInvert;
 
+  if (desiredSpeed > 250){ //speedmax
+  desiredSpeed = 250;
+  } else if (desiredSpeed < 40){ //speedmin
+  desiredSpeed = 40;
+  }
+
 if (direction == FORWARD_DIR) {
       fwd(desiredSpeed);
     } else if (direction == BACKWARD_DIR) {

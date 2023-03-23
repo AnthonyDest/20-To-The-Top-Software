@@ -3,7 +3,7 @@
 #include "ICM_20948.h"
 #include <Arduino.h>
 
-class Gyro : public ICM_20948 {
+class Gyro : public ICM_20948_I2C {
 public:
 
   Gyro();
@@ -14,9 +14,12 @@ public:
 
   double getTurnAngle();
 
+  void firstStabalizeGyroValues();
+
 private:
 
   icm_20948_DMP_data_t data;
+  // double lastGoodValue = 0;
 
   bool quaternationCalcs();
 
@@ -39,6 +42,8 @@ private:
   double t3 = 0;
   double t4 = 0;
   double yaw = 0;
+float average(float inputA, float inputB);
+  double lastValidYaw = 0;
 };
 
 

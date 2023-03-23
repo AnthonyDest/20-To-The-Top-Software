@@ -34,6 +34,8 @@ double d = 0;
   // void setupPID(double &input, double &output, double &setpoint, double p, double i, double d);
     void setupPID(double &input, double &output, double &setpoint, double &maxSpeed);
 
+  double deltaLeft = 0;
+  double deltaRight = 0;
 
 
   // Drive in direction given by sign, at speed given by magnitude of the
