@@ -40,6 +40,15 @@ void Motor::setupPID(double &input, double &output, double &setpoint, double &ma
   start();
   }
 
+  void Motor::setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed){
+  begin(&input, &output, &setpoint, pCustom, iCustom, dCustom);
+  setOutputLimits(30, maxSpeed);
+  setBias(255.0 / 2.0);
+  // setBias(100.0 / 2.0);
+  setWindUpLimits(-10, 10); // Groth bounds for the integral term to prevent integral wind-up
+  start();
+  }
+
 
 //may want to remove while if the time is too long
 void Motor::speedUp(int desiredSpeed, int direction) {

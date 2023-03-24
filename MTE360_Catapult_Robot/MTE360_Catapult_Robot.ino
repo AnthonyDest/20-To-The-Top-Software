@@ -40,6 +40,7 @@ int dist = 0;
 //  Robot meBot(leftMotor, rightMotor, leftEncoder, rightEncoder);
 // Robot mesBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF);
 Robot mesgBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF, gyro);
+
 void setup() {
   Serial.begin(115200);
   //  while (!Serial) {}
@@ -51,6 +52,7 @@ void setup() {
   attachInterrupt(ENCB_M2, updateRightEncoder, CHANGE);
   
   mesgBot.allConfiguration();
+  // botTOF.initalizeTOF();
 
   state = 0;
   Serial.println("START");
@@ -70,7 +72,7 @@ void updateRightEncoder() {
 }
 
 void loop() {   //state machine
-    // Serial.println("TIME: " + String(millis()));
+    //  Serial.println("TIME: " + String(millis()));
     //State 10: Drive Fwd
     //State 20: Drive fwd to enc distance
     //State 30: Scan/rotate and drive to enc distance
@@ -78,8 +80,11 @@ void loop() {   //state machine
     //State 50: Drive straight by gyro
     //State 60: Rotate to heading (go back to 0 deg)
 
+// Serial.println(botTOF.scanDistanceMM());
+// delay(100);
+
 if(state == 0){
-  state = 10;
+  state = 55;
   blink(10, 100);
   // delay(5000);
   blink(3, 500);
@@ -91,15 +96,23 @@ blink(20,100);
   delay(1000);
   state++;
 }
-
+// state = 5;
+// if(state ==5){
+  
+//   // mesgBot.scanBothTOF();
+//   Serial.println(botTOF.scanDistanceMM());
+//   // Serial.println(mesgBot.scanDistanceBotAverage);
+// }
 
 
 if(state == 10){ //Drive Fwd
 Serial.println("Drive Start");
-  mesgBot.forwardDrive(50);
+  mesgBot.forwardDrive(100);
+  
+
   // rightMotor.fwd(100);
   // leftMotor.fwd(100);
-  delay(1000);
+  delay(5000);
   Serial.println("Drive End");
   mesgBot.brake();
   delay(2000);
@@ -111,205 +124,86 @@ if(state == 20){ //drive forward PID
   state = STATE_END;
 }
 
-// if(state == 30){ //State 30: Scan/rotate and drive to enc distance
-  
-//   mesgBot.searchForPole();
+if(state == 30){ //State 30: Scan/rotate and drive to enc distance
+  Serial.println("Start 30");
+  mesgBot.searchForPole();
 
-//   mesgBot.forwardDrivePID(mesgBot.linearDistToPole);
+  // mesgBot.forwardDrivePID(mesgBot.linearDistToPole);
+  mesgBot.driveForwardAtCurrentHeading(mesgBot.linearDistToPole);
 
-//   state = STATE_END;
-// }
+  // mesgBot.rightTurnStationaryPID(200);
 
+  // mesgBot.searchForPole();
 
-// if(state == 40){ //State 40: Rotate 90 deg by gyro
-  
-//   mesgBot.turnDeltaAngleGyro(90,BACKWARD_DIR, FORWARD_DIR);
-//   state = STATE_END;
-// }
+  // mesgBot.driveForwardAtCurrentHeading(mesgBot.linearDistToPole);
 
-if(state == 50){ //State 50: Drive straight using gyro
-blink(10, 100);
-// delay(5000);
-blink(3, 500);
-  mesgBot.driveForwardAtCurrentHeading(1500);
   state = STATE_END;
 }
 
-// if(state == 60){ //State 60: Rotate to heading (0 deg, aka back to starting condition)
-//   mesgBot.turnToHeading(0);
 
-//   for (int i = 0; i<5; i++) {
-//   digitalWrite(LED_BUILTIN, HIGH);  
-//   delay(500);                     
-//   digitalWrite(LED_BUILTIN, LOW);
-//   delay(500);     
-//   }
-//   digitalWrite(LED_BUILTIN, HIGH);
-//   delay(1000);
-// }
+if(state == 40){ //State 40: Rotate 90 deg by gyro
+  
+  mesgBot.turnDeltaAngleGyro(90,BACKWARD_DIR, FORWARD_DIR);
+  state = STATE_END;
+}
 
+if(state == 50){ //State 50: Drive straight using gyro
 
+  mesgBot.driveForwardAtCurrentHeading(4000);
+  state = STATE_END;
+}
+
+if(state == 55){ //State 55: Drive straight using gyro AND PID
+
+  mesgBot.driveForwardAtCurrentHeadingWithPID(4000);
+  state = STATE_END;
+}
+
+if(state == 60){ //State 60: Rotate to heading (0 deg, aka back to starting condition)
+  mesgBot.turnToHeading(0);
+
+  for (int i = 0; i<5; i++) {
+  digitalWrite(LED_BUILTIN, HIGH);  
+  delay(500);                     
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);     
+  }
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+}
+
+if(state == 80){ //State 60: Rotate to heading (0 deg, aka back to starting condition)
+  
+blink(5, 250);
+mesgBot.forwardDrive(50);
+delay(3000);
+mesgBot.brake();
+
+blink(10, 250);
+mesgBot.forwardDrive(100);
+delay(3000);
+mesgBot.brake();
+
+blink(15, 250);
+mesgBot.forwardDrive(150);
+delay(3000);
+mesgBot.brake();
+
+blink(20, 250);
+mesgBot.forwardDrive(200);
+delay(3000);
+mesgBot.brake();
+
+blink(25, 250);
+mesgBot.forwardDrive(250);
+delay(3000);
+mesgBot.brake();
+
+blink(100,1000);
 
 }
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//     leftMotor.fwd(100);
-//     rightMotor.fwd(100);
-// if(state == 0){
-//   state = 18;
-// }
- 
-// // Serial.println(mesgBot.getOrientationAngle());
-// // delay(100);
-
-// // Serial.println(mesgBot.getOrientationAngle());
-// if (state < 20){
-// Serial.println(String(mesgBot.getOrientationAngle()) + "   " + String(state));
-// delay(100);
-// state+=1;
-// }
-// if (state == 20){
-//    Serial.println("Driving");
-//    delay(5000);
-//   // mesgBot.turnToHeading(50);
-//   // mesgBot.turnDeltaAngleGyro(50,1,1);
-//   mesgBot.driveForwardAtCurrentHeading(5000);
-//   Serial.println("END");
-
-//    delay(10000);
-// state=0;
-// }
-// delay(1000);
-// }
-
-
-
-//------
-  // leftMotor.fwd(250);
-  // rightMotor.fwd(250);
-//   digitalWrite(20, HIGH);
-//  digitalWrite(21, HIGH);
-  //  mesBot.scanBothTOF();
-
-  // Serial.println(mesBot.scanDistanceBotAverage);
-  // Serial.println(mesBot.scanDistanceTopAverage);
-
-  // delay(300);
-// leftMotor.fwd(100);
-// rightMotor.fwd(100);
-// Serial.println("Start");
-// delay(10000);
-// mesBot.testPIDDriveEncoderStepCount(50);
-// // mesBot.forwardDrive(30);
-// delay(5000);
-// mesBot.testPIDDriveEncoderStepCount(500);
-// // mesBot.brake();
-// delay(5000);
-// mesBot.testPIDDriveEncoderStepCount(5000);
-// delay(30000);
-
-// if (state == 5){
-//   // Serial.println("STARTING");
-//   for (int i = 0; i<8; i++) {
-//   digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-//   delay(200);                      // wait for a second
-//   digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-//   delay(200);     
-//   }
-//   digitalWrite(LED_BUILTIN, HIGH);
-//   delay(1000);
-//   state++;
-// }
-
-
-// if (state == 1){
-//   //  Serial.println("Drive");
-//   // mesBot.travelledDistanceUsingEncoder(2000,50);
-//   // mesBot.testPIDDriveEncoderStepCount(2000);
-//   mesBot.searchForPole();
-//   delay(2000);
-//   state++;
-// }
-
-// if (state == 2){
-//   // Serial.println("Stop");
-//   // meBot.testPIDDriveEncoderStepCount(600);
-//   // leftMotor.brake();
-
-//   // Serial.println("DRIVE: "  + String(mesBot.linearDistToPole / MM_PER_STEP));
-//    mesBot.forwardDrivePID(mesBot.linearDistToPole / MM_PER_STEP); // /mm per step = * step per mm
-//   delay(2000);
-//   state++;
-// }
-
-// if (state == 3){
-//   // Serial.println("Reset");
-//   // meBot.testPIDDriveEncoderStepCount(600);
-//    for (int i = 0; i<10; i++) {
-//   digitalWrite(LED_BUILTIN, HIGH);  // turn the LED on (HIGH is the voltage level)
-//   delay(1000);                      // wait for a second
-//   digitalWrite(LED_BUILTIN, LOW);   // turn the LED off by making the voltage LOW
-//   delay(1000);        
-//   }
-//   delay(500);
-//   state=0;
-// }
-
-
-//  delay(10);
-
-      // mesBot.forwardDrive(255);
-      
-  //  mesBot.scanBothTOF();
-
-  // Serial.println(mesBot.scanDistanceBotAverage);
-  // Serial.println(mesBot.scanDistanceTopAverage);
-
-  // delay(300);
-
-//  if (state == 7){
-
-//     mesBot.forwardDrive(250);
-// state++;
-//  }
-//   if (state == 5){
-//     Serial.println("Getting ready");
-//     delay(500); //change delay to a "wait"
-//     state++;
-//   }
-
-//   if (state == 1){
-//     Serial.println("Searching for pole");
-//     mesBot.searchForPole();
-//     Serial.println("Pole found pole");
-//     // delay(2000);
-//     state++;
-//   }
-
-//   if (state == 2){
-//     Serial.println("Driving to pole, distance of [CM]: " + String(mesBot.linearDistToPole));
-//     delay(500);
-//     mesBot.forwardDriveDistance(100,mesBot.linearDistToPole);
-//     delay(500);
-//     state++;
-//   }
-
-//   if (state == 3){
-//   }
-
-//  delay(500);
-
-//testing enc steps
-// Serial.println(leftEncoder.stepCounter);
-// temp = leftEncoder.stepCounter;
-// dist = 3000; //600~ 1 turn, max ~8 turns = 2m = 4800, max max = 10 turns = 6000 (testing )
-// mesBot.forwardDriveDistance(50,dist);
-// Serial.println(leftEncoder.stepCounter - temp - dist);
-// delay(5000);
-
-// }
-
+}
 
 void blink(int numberOfBlinks, int blinkDurationMS){
 
@@ -321,5 +215,5 @@ void blink(int numberOfBlinks, int blinkDurationMS){
   }
   digitalWrite(LED_BUILTIN, HIGH);
 
-
 }
+ 

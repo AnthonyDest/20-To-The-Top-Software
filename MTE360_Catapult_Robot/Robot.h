@@ -7,10 +7,8 @@
 #include "Adafruit_VL53L0X.h"
 #include "Gyro.h"
 
-#include <SPI.h>
-#include <SD.h>
-
-
+// #include <SPI.h>
+// #include <SD.h>
 
 class Robot {
 public:
@@ -65,6 +63,8 @@ public:
 
   void turnToHeading(double heading);
   void driveForwardAtCurrentHeading(double distanceMM);
+
+  void driveForwardAtCurrentHeadingWithPID(double distanceMM);
   
   // void forwardDriveDistanceENCMonitor(int speed, float distanceCM);
 
@@ -81,7 +81,7 @@ double getOrientationAngle();
 bool driveDistanceTracking(double distanceCM);
 
 void turnDeltaAngleGyro(double angle, int leftDir, int rightDir);
- private:
+//  private:
 
   float average(float inputA, float inputB);
   void drivePID(double steps, int leftMotorDir, int rightMotorDir, double maxSpeed);
@@ -105,8 +105,8 @@ void turnDeltaAngleGyro(double angle, int leftDir, int rightDir);
 
   float initialDistance = 0, currentDistanceTravelled = 0;
 
-  File fileSD;
-  void setupSDCard();
-  void log(String dataToLog);
+  // File fileSD;
+  // void setupSDCard();
+  // void log(String dataToLog);
 };
 #endif
