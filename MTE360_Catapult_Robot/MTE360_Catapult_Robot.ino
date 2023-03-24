@@ -20,7 +20,14 @@
 #define AD0_VAL 86           // gyro
 #define BOT_TOF_RESET_PIN 5  //reset
 
-const int STATE_END = 5;
+
+               //State 20: Drive fwd to enc distance with PID
+               //State 30: Drive straight using gyro AND PID
+               //State 40: Scan/rotate and find pole
+               //State 1: Stop
+#define TEST_STATE1 20
+#define TEST_STATE2 30
+
 
 const int DirectionInvertLeft = 1;
 const int DirectionInvertRight = 1;
@@ -37,10 +44,10 @@ Gyro gyro;
 
 int temp = 0;
 int dist = 0;
-// Robot mBot(leftMotor, rightMotor);
-//  Robot meBot(leftMotor, rightMotor, leftEncoder, rightEncoder);
-// Robot mesBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF);
+
 Robot mesgBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF, gyro);
+
+int find_next_state(int state);
 
 void setup() {
   Serial.begin(115200);
@@ -53,15 +60,10 @@ void setup() {
   attachInterrupt(ENCB_M2, updateRightEncoder, CHANGE);
 
   mesgBot.allConfiguration();
-  //  botTOF.initalizeTOF();
 
   state = 0;
   Serial.println("START");
-  // rightMotor.drive(255, 1);
 
-  // delay(500);
-  //     leftMotor.drive(255, 1);
-  // gyro.setup();
   delay(100);  // replace with wait to stabalize gyro ?
 }
 
@@ -74,102 +76,36 @@ void updateRightEncoder() {
 
 void loop() {  //state machine
                // Serial.println("TIME: " + String(millis()));
-               //State 10: Drive Fwd
-               //State 20: Drive fwd to enc distance
-               //State 30: Scan/rotate and drive to enc distance
-               //State 40: Rotate 90 deg by gyro
-               //State 50: Drive straight by gyro
-               //State 60: Rotate to heading (go back to 0 deg)
 
-  // Serial.println(botTOF.scanDistanceMM());
-  delay(100);
-
+  //Start Countdown
   if (state == 0) {
-    state = 55;
+    state = TEST_STATE1;
     blink(10, 100);
-    // delay(5000);
     blink(3, 500);
   }
 
-  if (state == STATE_END) {
-    // Serial.println("STARTING");
-    blink(20, 100);
-    delay(1000);
-    state++;
-  }
-
-  if(state == 4){
-    mesgBot.forwardDrive(40);
-    delay(5000);
+    //Stop shit
+    if (state == 1) {
     mesgBot.brake();
-    state = STATE_END;
-  }
-  // state = 5;
-  if (state == 5) {
-    Serial.println(millis());
-    // Serial.println("Test");
-    // mesgBot.scanBothTOF();
-    // Serial.println(botTOF.scanDistanceMM());
-    measuredDistance = botTOF.scanDistanceMM();
-    Serial.println(measuredDistance);
-    if (measuredDistance > 100) {
-
-      digitalWrite(LED_BUILTIN, HIGH);
-
-    } else {
-      digitalWrite(LED_BUILTIN, LOW);
+    while(1){
+      blink(10, 100);
     }
-    delay(100);
-    // Serial.println(botTOF.scanDistanceMM());
-    // Serial.println(mesgBot.scanDistanceBotAverage);
-  }
-
-
-  if (state == 10) {  //Drive Fwd
-    Serial.println("Drive Start");
-    mesgBot.forwardDrive(100);
-
-
-    // rightMotor.fwd(100);
-    // leftMotor.fwd(100);
-    delay(5000);
-    Serial.println("Drive End");
-    mesgBot.brake();
-    delay(2000);
-    state = STATE_END;
   }
 
   if (state == 20) {  //drive forward PID
     mesgBot.forwardDrivePID(3000);
-    state = STATE_END;
+
+    //go to next test 
+    state = find_next_state(state);
   }
 
-  if (state == 30) {  //State 30: Scan/rotate and drive to enc distance
-    Serial.println("Start 30");
-    mesgBot.searchForPole();
-
-    // mesgBot.forwardDrivePID(mesgBot.linearDistToPole);
-    // mesgBot.driveForwardAtCurrentHeading(mesgBot.linearDistToPole);
-    mesgBot.driveForwardAtCurrentHeadingWithPID(mesgBot.linearDistToPole,150);
-
-    // mesgBot.rightTurnStationaryPID(200);
-
-    // mesgBot.searchForPole();
-
-    // mesgBot.driveForwardAtCurrentHeading(mesgBot.linearDistToPole);
-
-    state = STATE_END;
+  if (state == 30) {  //State 55: Drive straight using gyro AND PID
+    mesgBot.driveForwardAtCurrentHeadingWithPID(4000,150);
+    state = find_next_state(state);
   }
 
-  if (state == 35) {  //State 30: Scan/rotate and drive to enc distance
-    Serial.println("Start 35");
-    mesgBot.searchForPole();
-    mesgBot.driveForwardAtCurrentHeadingWithPID(mesgBot.linearDistToPole,150);
 
-    state = STATE_END;
-  }
-
-  if (state == 300) {  //State 30: Scan/rotate and drive to enc distance
+  if (state == 40) {  //State 30: Scan/rotate and drive to enc distance
     Serial.println("Start 300");
     int internalState = 0;
 
@@ -209,79 +145,10 @@ void loop() {  //state machine
 
     mesgBot.driveForwardAtCurrentHeadingWithPID(mesgBot.linearDistToPole,150);
 
-    state = STATE_END;
+    state = find_next_state(state);
   }
 
 
-
-  if (state == 40) {  //State 40: Rotate 90 deg by gyro
-
-    mesgBot.turnDeltaAngleGyro(90, BACKWARD_DIR, FORWARD_DIR);
-    state = STATE_END;
-  }
-
-  if (state == 50) {  //State 50: Drive straight using gyro
-
-    mesgBot.driveForwardAtCurrentHeading(10000);
-    state = STATE_END;
-  }
-
-  if (state == 51) {  //State 50: Drive straight using gyro
-
-    while (true) {
-      Serial.println(mesgBot.getOrientationAngle());
-    }
-    state = STATE_END;
-  }
-
-  if (state == 55) {  //State 55: Drive straight using gyro AND PID
-
-    mesgBot.driveForwardAtCurrentHeadingWithPID(4000,150);
-    state = STATE_END;
-  }
-
-  if (state == 60) {  //State 60: Rotate to heading (0 deg, aka back to starting condition)
-    mesgBot.turnToHeading(0);
-
-    for (int i = 0; i < 5; i++) {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(500);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(500);
-    }
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(1000);
-  }
-
-  if (state == 80) {  //State 60: Rotate to heading (0 deg, aka back to starting condition)
-
-    blink(5, 250);
-    mesgBot.forwardDrive(50);
-    delay(3000);
-    mesgBot.brake();
-
-    blink(10, 250);
-    mesgBot.forwardDrive(100);
-    delay(3000);
-    mesgBot.brake();
-
-    blink(15, 250);
-    mesgBot.forwardDrive(150);
-    delay(3000);
-    mesgBot.brake();
-
-    blink(20, 250);
-    mesgBot.forwardDrive(200);
-    delay(3000);
-    mesgBot.brake();
-
-    blink(25, 250);
-    mesgBot.forwardDrive(250);
-    delay(3000);
-    mesgBot.brake();
-
-    blink(100, 1000);
-  }
 }
 
 void blink(int numberOfBlinks, int blinkDurationMS) {
@@ -293,4 +160,14 @@ void blink(int numberOfBlinks, int blinkDurationMS) {
     delay(blinkDurationMS);
   }
   digitalWrite(LED_BUILTIN, HIGH);
+}
+
+int find_next_state(int state)
+{
+     if(state == TEST_STATE1) 
+        state = TEST_STATE2;
+    else
+      state = 1; //stop and just blink
+    return state;
+  
 }

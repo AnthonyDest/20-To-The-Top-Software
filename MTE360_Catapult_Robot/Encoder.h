@@ -33,7 +33,7 @@ public:
 
   // int deltaStepCounter = 0;
 
- double stepCounter; // make a getter
+  double stepCounter; // make a getter
   int stepCounterForTurning = 0;
   double stepTripCounterBegin = 0;
 

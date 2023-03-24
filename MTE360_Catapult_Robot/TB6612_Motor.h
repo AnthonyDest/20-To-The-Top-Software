@@ -27,24 +27,15 @@ public:
 
   Motor(int DIRpin, int PWMpin, int DirectionInvert);
 
-double p = 16.2039;
-double i = 20.2906;
-double d = 0;
+const double p = 16.2039;
+const double i = 20.2906;
+const double d = 0;
 
-
-double pCustom = 16.2039;
-double iCustom = 20.2906;
-double dCustom = 0;
-
-  // double pCustom = 4.05;
-  // double iCustom = 5.07;
-  // double dCustom = 0;
 
 
   // void setupPID(double &input, double &output, double &setpoint, double p, double i, double d);
     void setupPID(double &input, double &output, double &setpoint, double &maxSpeed);
-    // void setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed, double &p, double &i, double &d);
-    void setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed);
+
 
   double deltaLeft = 0;
   double deltaRight = 0;
@@ -54,36 +45,20 @@ double dCustom = 0;
   //parameter.
   void drive(int speed, int direction);
 
-  void speedUp(int desiredSpeed, int direction);
-  void slowDown(int desiredSpeed, int direction);
-
   int getMotorDir();
 
-  // drive(), but with a delay(duration)
-  // void drive(int speed, int duration);
 
   //Stops motor by setting both input pins high
   void brake();
 
-  //  no longer able to access
-  // //set the chip to standby mode.  The drive function takes it out of standby
-  // //(forward, back, left, and right all call drive)
-  // void standby();
 
 // private:
   //variables for the 2 inputs, PWM input, Offset value, and the Standby pin
   int DIR, PWM, DirectionInvert, curSpeed = 0, curDirState = 0, nextSpeed;
 
-  // const int SPEEDINCREMENT = 25;
-  // const int SPEEDDELAY = 250;
 
   const int MINSPEED = 50;
   const int MAXSPEED = 250;
-
-  // enum robotSpeedDirection
-  // {   forwardDir = 1,
-  //     backwardDir= -1
-  // };
 
 
   //private functions that spin the motor CC and CCW

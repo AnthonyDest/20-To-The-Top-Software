@@ -41,9 +41,9 @@ void Robot::allConfiguration() {
   Serial.println("TOF START");
   Setup_TOF_Address();
   Serial.println("TOF GOOD");
-    gyro->setup();
-     Serial.println("GYRO GOOD");
-    gyro->firstStabalizeGyroValues();
+  gyro->setup();
+  Serial.println("GYRO GOOD");
+  gyro->firstStabalizeGyroValues();
 }
 
 //Drive forward
@@ -275,25 +275,31 @@ void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpe
   double leftMotorSpeed = 0;
   double rightMotorSpeed = 0;
 
-  double p = 16.2039;
-  double i = 20.2906;
-  double d = 0;
+  const double p = 16.2039;
+  const double i = 20.2906;
+  const double d = 0;
 
 
 double stepToTravel  = distanceMM/MM_PER_STEP;
   leftEncoder->resetTripCounter();
   rightEncoder->resetTripCounter();
-  leftMotor->setupPID_CUSTOM(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
-  rightMotor->setupPID_CUSTOM(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
-
+  leftMotor->setupPID(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
+  rightMotor->setupPID(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
+  leftMotor->start();
+  rightMotor->start();
+  leftMotor->compute();
+  rightMotor->compute();
+  
   while(driveDistanceTracking(distanceMM/MM_PER_STEP)){
 
   deltaHeading = (heading-gyro->getTurnAngle());
 
-    leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
-    rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
     leftMotor->compute();
     rightMotor->compute();
+    leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
+    rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
+    Serial.println(leftMotorSpeed);
+    Serial.println(rightMotorSpeed);
 
 }
   leftMotor->brake();
