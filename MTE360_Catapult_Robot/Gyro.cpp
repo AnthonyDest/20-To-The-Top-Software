@@ -32,6 +32,7 @@ void Gyro::firstStabalizeGyroValues(){
 
   for(int i = 0; i< 100; i++){
     Serial.println(getTurnAngle());
+    // getTurnAngle();
   }
 
 }

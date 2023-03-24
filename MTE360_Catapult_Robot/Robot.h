@@ -64,7 +64,7 @@ public:
   void turnToHeading(double heading);
   void driveForwardAtCurrentHeading(double distanceMM);
 
-  void driveForwardAtCurrentHeadingWithPID(double distanceMM);
+  void driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpeed);
   
   // void forwardDriveDistanceENCMonitor(int speed, float distanceCM);
 

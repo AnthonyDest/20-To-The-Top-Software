@@ -233,20 +233,23 @@ void Robot::driveForwardAtCurrentHeading(double distanceMM) {
 
   if(deltaHeading < 0){
     // //log("STEER RIGHT ");
+    Serial.println("STEER RIGHT ");
   }
    if(deltaHeading > 0){
     // //log("STEER LEFT ");
+    Serial.println("STEER LEFT");
   }
 
   //log("L: " + String(speed - deltaHeading) + "R: " + String(speed + deltaHeading) + " DIST: " + String(average(deltaLeft, deltaRight) * MM_PER_STEP));
+  Serial.println("L: " + String(speed - deltaHeading) + "R: " + String(speed + deltaHeading) + " DIST: " + String(average(deltaLeft, deltaRight) * MM_PER_STEP));
   // leftMotor->drive(speed - deltaHeading, FORWARD_DIR);
   rightMotor->drive(speed + deltaHeading, FORWARD_DIR);
    leftMotor->drive(speed - deltaHeading, FORWARD_DIR);
    Serial.println(speed);
 
-   if(speed < maxSpeed){
-     speed = speed+25;
-   }
+  //  if(speed < maxSpeed){
+  //    speed = speed+25;
+  //  }
 
 }
   leftMotor->brake();
@@ -255,13 +258,13 @@ void Robot::driveForwardAtCurrentHeading(double distanceMM) {
 }
 /////////////////////////////////////////////////////////////////////////
 
-void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM) {
+void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpeed) {
   double heading = gyro->getTurnAngle();
   double steerAdjustment = 0;
   
   double currentHeading = 0;
   double deltaHeading = 0;
-  double maxSpeed = 150;
+  // double maxSpeed = 150;
 
   deltaLeft = 0;  // fix temp storage
   deltaRight = 0;

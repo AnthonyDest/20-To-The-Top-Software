@@ -31,9 +31,14 @@ double p = 16.2039;
 double i = 20.2906;
 double d = 0;
 
-  double pCustom = 16.2039;
-  double iCustom = 20.2906;
-  double dCustom = 0;
+
+double pCustom = 16.2039;
+double iCustom = 20.2906;
+double dCustom = 0;
+
+  // double pCustom = 4.05;
+  // double iCustom = 5.07;
+  // double dCustom = 0;
 
 
   // void setupPID(double &input, double &output, double &setpoint, double p, double i, double d);

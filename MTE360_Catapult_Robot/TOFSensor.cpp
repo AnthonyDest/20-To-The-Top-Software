@@ -16,12 +16,14 @@ if(!begin()) {
 }
 
 void TOFSensor::initalizeTOF(uint8_t new_addr){
+  Serial.println("Start TOF");
 if(!begin(new_addr)) {
     Serial.println(F("Failed to boot First VL53L0X"));
     while(1);
   } else{
       Serial.println(F("One Good"));
   }
+  Serial.println("END TOF");
 }
 
 void TOFSensor::configureResetPin() {
