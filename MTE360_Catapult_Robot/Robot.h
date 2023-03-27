@@ -75,14 +75,14 @@ double getOrientationAngle();
   void Setup_TOF_Address();
   void scanBothTOF();
   bool poleFound(); //aka poleFound check if facing pole
-  void searchForPole();
+  bool searchForPole(int scanDirection, int degreesToScan);
 
   uint16_t linearDistToPole = 0;
 bool driveDistanceTracking(double distanceCM);
 
 void turnDeltaAngleGyro(double angle, int leftDir, int rightDir);
 //  private:
-
+void wait(double MS);
   float average(float inputA, float inputB);
   void drivePID(double steps, int leftMotorDir, int rightMotorDir, double maxSpeed);
 
@@ -101,9 +101,9 @@ void turnDeltaAngleGyro(double angle, int leftDir, int rightDir);
   double deltaLeft = 0; 
   double deltaRight = 0;
   double averageSteps = 0;
-  double bootlegPIDRamp = 0;
 
   float initialDistance = 0, currentDistanceTravelled = 0;
+  double deltaTurnAngle = 0;
 
   // File fileSD;
   // void setupSDCard();

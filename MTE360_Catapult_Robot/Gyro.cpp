@@ -4,6 +4,9 @@
 #define AD0_VAL 86
 // ICM_20948_I2C myICM;
 
+
+
+
 Gyro::Gyro()
   : ICM_20948_I2C(){};
 
@@ -101,17 +104,27 @@ double Gyro::getTurnAngle() {
       q2sqr = q2 * q2;
       t3 = +2.0 * (q0 * q3 + q1 * q2);
       t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
-      yaw = atan2(t3, t4) * 180.0 / PI;
+      
+      nextYaw = atan2(t3, t4) * 180.0 / PI;
+      // if(!isnan(nextYaw) and abs(yaw-nextYaw) <50){
+      //   yaw = nextYaw;
+      // }
+      if(!isnan(nextYaw)){
+        yaw = nextYaw;
+      }
       
     }
   }
-   if (status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
-  {
-    delay(10);
-  }
+  //  if (status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
+  // {
+  //   wait(10);
+  // }
   return yaw;
 }
 
+ void Gyro::resetTripCounter(){
+  startTurnHeading = getTurnAngle();
+ }
 
 // double Gyro::getTurnAngle() {
 //   int errorCounter = 0;
@@ -173,4 +186,9 @@ double Gyro::getTurnAngle() {
 
 float Gyro::average(float inputA, float inputB) {
   return (inputA + inputB) / 2;
+}
+
+void Gyro::wait(double MS){
+double startTime = millis();
+while ((millis() - startTime) < MS){};
 }

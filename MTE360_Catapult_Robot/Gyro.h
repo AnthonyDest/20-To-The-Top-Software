@@ -2,6 +2,8 @@
 #define Gyro_h
 #include "ICM_20948.h"
 #include <Arduino.h>
+#define CW_DIR 1
+#define CCW_DIR -1
 
 class Gyro : public ICM_20948_I2C {
 public:
@@ -15,6 +17,11 @@ public:
   double getTurnAngle();
 
   void firstStabalizeGyroValues();
+
+  void resetTripCounter();
+  double startTurnHeading = 0;
+  // double deltaTurnAngle = 0;
+
 
 private:
 
@@ -42,8 +49,11 @@ private:
   double t3 = 0;
   double t4 = 0;
   double yaw = 0;
+  double nextYaw = 0;
 float average(float inputA, float inputB);
   double lastValidYaw = 0;
+void wait(double MS);
+
 };
 
 
