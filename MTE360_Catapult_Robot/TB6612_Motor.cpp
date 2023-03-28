@@ -33,77 +33,75 @@ Motor::Motor(int _DIR, int _PWM, int _DirectionInvert):ArduPID(){
 // void Motor::setupPID(double &input, double &output, double &setpoint, double p, double i, double d){
 void Motor::setupPID(double &input, double &output, double &setpoint, double &maxSpeed){
   begin(&input, &output, &setpoint, p, i, d);
-  setOutputLimits(30, maxSpeed);
+  setOutputLimits(40, maxSpeed);
   // setBias(255.0 / 2.0);
-  setBias(100.0 / 2.0);
-  setWindUpLimits(-10, 10); // Groth bounds for the integral term to prevent integral wind-up
+  // setBias(100.0 / 2.0);
+  setWindUpLimits(-50, 50); // Groth bounds for the integral term to prevent integral wind-up
   start();
   }
 
   void Motor::setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed){
   begin(&input, &output, &setpoint, pCustom, iCustom, dCustom);
-  setOutputLimits(30, maxSpeed);
-  setBias(255.0 / 2.0);
-  // setBias(100.0 / 2.0);
-  setWindUpLimits(-10, 10); // Groth bounds for the integral term to prevent integral wind-up
+  setOutputLimits(40, maxSpeed);
+  setWindUpLimits(-30, 30); // Groth bounds for the integral term to prevent integral wind-up
   start();
   }
 
 
 //may want to remove while if the time is too long
-void Motor::speedUp(int desiredSpeed, int direction) {
+// void Motor::speedUp(int desiredSpeed, int direction) {
 
-  while (curSpeed < desiredSpeed) {
+//   while (curSpeed < desiredSpeed) {
 
-    nextSpeed += SPEEDINCREMENT;
+//     nextSpeed += SPEEDINCREMENT;
 
-    // redundant input checks
-    if (nextSpeed > desiredSpeed) {
-      nextSpeed = desiredSpeed;
-    }
+//     // redundant input checks
+//     if (nextSpeed > desiredSpeed) {
+//       nextSpeed = desiredSpeed;
+//     }
 
-    if (nextSpeed < MINSPEED) {
-      nextSpeed = MINSPEED;
-    }
+//     if (nextSpeed < MINSPEED) {
+//       nextSpeed = MINSPEED;
+//     }
 
-    if (nextSpeed > MAXSPEED) {
-      nextSpeed = MAXSPEED;
-    }
+//     if (nextSpeed > MAXSPEED) {
+//       nextSpeed = MAXSPEED;
+//     }
 
-    if (direction == FORWARD_DIR) {
-      fwd(nextSpeed);
-    } else {
-      rev(nextSpeed);
-    }
+//     if (direction == FORWARD_DIR) {
+//       fwd(nextSpeed);
+//     } else {
+//       rev(nextSpeed);
+//     }
 
-    delay(SPEEDDELAY);
-  }
-}
-//may want to remove while if the time is too long
-void Motor::slowDown(int desiredSpeed, int direction) {
+//     delay(SPEEDDELAY);
+// //   }
+// // }
+// //may want to remove while if the time is too long
+// void Motor::slowDown(int desiredSpeed, int direction) {
 
-  while (curSpeed > desiredSpeed) {
+//   while (curSpeed > desiredSpeed) {
 
-    nextSpeed -= SPEEDINCREMENT;
+//     nextSpeed -= SPEEDINCREMENT;
 
-    // redundant input checks
-    if (nextSpeed < desiredSpeed) {
-      nextSpeed = desiredSpeed;
-    }
+//     // redundant input checks
+//     if (nextSpeed < desiredSpeed) {
+//       nextSpeed = desiredSpeed;
+//     }
 
-    if (nextSpeed < MINSPEED) {
-      nextSpeed = 0;
-    }
+//     if (nextSpeed < MINSPEED) {
+//       nextSpeed = 0;
+//     }
 
-    if (direction == FORWARD_DIR) {
-      fwd(nextSpeed);
-    } else {
-      rev(nextSpeed);
-    }
+//     if (direction == FORWARD_DIR) {
+//       fwd(nextSpeed);
+//     } else {
+//       rev(nextSpeed);
+//     }
 
-    delay(SPEEDDELAY);
-  }
-}
+//     delay(SPEEDDELAY);
+//   }
+// }
 
 //Determines which way to spin motor and how to scale speed
 void Motor::drive(int desiredSpeed, int direction) {
@@ -112,8 +110,8 @@ void Motor::drive(int desiredSpeed, int direction) {
 
   if (desiredSpeed > 250){ //speedmax
   desiredSpeed = 250;
-  } else if (desiredSpeed < 40){ //speedmin
-  desiredSpeed = 40;
+  } else if (desiredSpeed < MINSPEED){ //speedmin
+  desiredSpeed = MINSPEED;
   }
 
 if (direction == FORWARD_DIR) {

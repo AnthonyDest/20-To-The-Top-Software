@@ -58,6 +58,8 @@ void TOFSensor::debounceDistance(uint16_t &scanDistance, uint16_t &scanDistanceA
 
 bool TOFSensor::verifyValidScanData(uint16_t distance){
   if(distance > 8000 and distance < 8200){ // figure out all error codes during testing
+  //XXX0 = out of range
+  //XXX1 = Ambient light issues
     return false; // Scan error
   } else if(distance == 65535){
     return false; // Timeout error

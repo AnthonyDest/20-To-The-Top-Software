@@ -27,13 +27,16 @@ public:
 
   Motor(int DIRpin, int PWMpin, int DirectionInvert);
 
-double p = 16.2039;
-double i = 20.2906;
+
+//turning
+double p = 16.2039/400;
+double i =20.2906/2;
 double d = 0;
 
 
-double pCustom = 16.2039;
-double iCustom = 20.2906;
+//driving
+double pCustom = 16.2039/400;
+double iCustom = 20.2906/2;
 double dCustom = 0;
 
   // double pCustom = 4.05;
@@ -77,7 +80,7 @@ double dCustom = 0;
   // const int SPEEDINCREMENT = 25;
   // const int SPEEDDELAY = 250;
 
-  const int MINSPEED = 50;
+  const int MINSPEED = 0;
   const int MAXSPEED = 250;
 
   // enum robotSpeedDirection

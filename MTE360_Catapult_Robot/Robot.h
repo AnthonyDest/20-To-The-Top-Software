@@ -58,8 +58,8 @@ public:
   //Determine specifc slowing down rate (should be full stp[?])
   void brake();
 
-  void forwardDriveDistance(int speed, float distanceCM);
-  void reverseDriveDistance(int speed, float distanceCM);
+  void forwardDriveDistance(double distanceMM, double speed);
+  void reverseDriveDistance(double distanceMM, double speed);
 
   void turnToHeading(double heading);
   void driveForwardAtCurrentHeading(double distanceMM);
@@ -76,6 +76,7 @@ double getOrientationAngle();
   void scanBothTOF();
   bool poleFound(); //aka poleFound check if facing pole
   bool searchForPole(int scanDirection, int degreesToScan);
+  bool searchForPoleContiniousSweep(int scanDirection, int degreesToScan);
 
   uint16_t linearDistToPole = 0;
 bool driveDistanceTracking(double distanceCM);

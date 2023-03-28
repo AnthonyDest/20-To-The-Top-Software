@@ -99,6 +99,8 @@ void Robot::drivePID(double stepToTravel, int leftMotorDir, int rightMotorDir, d
   rightEncoder->resetTripCounter();
   leftMotor->setupPID(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
   rightMotor->setupPID(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
+  // leftMotor->setupPID_CUSTOM(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
+  // rightMotor->setupPID_CUSTOM(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
 
   while (stepToTravel > average(deltaLeft, deltaRight)) {
     deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
@@ -170,7 +172,7 @@ void Robot::turnDeltaAngleGyro(double angleToTurn, int leftDir, int rightDir) { 
     //  Serial.println("Delta Angle: " + String(deltaAngle));
 
     // //log("Angle to turn: " + String(angleToTurn) + "   D" + String(deltaAngle));
-    wait(10);
+    // wait(10);
   }
 
   leftMotor->brake();
@@ -184,9 +186,9 @@ void Robot::driveForwardAtCurrentHeading(double distanceMM) {
 
   double currentHeading = 0;
   double deltaHeading = 0;
-  double maxSpeed = 150;
+  double maxSpeed = 220;
 
-  double speed = 50;
+  double speed = 175;
 
   // leftMotor->drive(speed, FORWARD_DIR);
   // rightMotor->drive(speed, FORWARD_DIR);
@@ -260,6 +262,42 @@ void Robot::driveForwardAtCurrentHeading(double distanceMM) {
 }
 /////////////////////////////////////////////////////////////////////////
 
+
+void Robot::forwardDriveDistance(double distanceMM, double speed) {
+
+  double stepToTravel = distanceMM / MM_PER_STEP;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  while (driveDistanceTracking(stepToTravel)) {
+
+    leftMotor->drive(speed, FORWARD_DIR);
+    rightMotor->drive(speed, FORWARD_DIR);
+   
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+}
+
+
+void Robot::reverseDriveDistance(double distanceMM, double speed) {
+
+  double stepToTravel = distanceMM / MM_PER_STEP;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  while (driveDistanceTracking(stepToTravel)) {
+
+    leftMotor->drive(speed, BACKWARD_DIR);
+    rightMotor->drive(speed, BACKWARD_DIR);
+   
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+}
+
 void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpeed) {
   double heading = gyro->getTurnAngle();
   double steerAdjustment = 0;
@@ -277,23 +315,30 @@ void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpe
   double leftMotorSpeed = 0;
   double rightMotorSpeed = 0;
 
-  // double p = 16.2039;
-  // double i = 20.2906;
-  // double d = 0;
-
-
   double stepToTravel = distanceMM / MM_PER_STEP;
+
   leftEncoder->resetTripCounter();
   rightEncoder->resetTripCounter();
   leftMotor->setupPID_CUSTOM(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
   rightMotor->setupPID_CUSTOM(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
 
-  while (driveDistanceTracking(distanceMM / MM_PER_STEP)) {
+  while (driveDistanceTracking(stepToTravel)) {
 
     deltaHeading = (heading - gyro->getTurnAngle());
 
     leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
     rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
+    if(leftMotorSpeed<maxSpeed){
+      Serial.print("L: " + String(leftMotorSpeed));
+    }
+    if(rightMotorSpeed<maxSpeed){
+      Serial.print("R: " + String(rightMotorSpeed));
+    }
+
+    if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
+      Serial.println();
+    }
+
     leftMotor->compute();
     rightMotor->compute();
   }
@@ -302,12 +347,14 @@ void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpe
 }
 
 bool Robot::driveDistanceTracking(double stepToTravel) {
+  // averageSteps = 0;
 
-  if (stepToTravel > averageSteps) {  //return true once distance travelled
-                                      // if (stepToTravel > average(deltaLeft, deltaRight)) { //return true once distance travelled
     deltaLeft = abs(leftEncoder->stepCounter - leftEncoder->stepTripCounterBegin);
     deltaRight = abs(rightEncoder->stepCounter - rightEncoder->stepTripCounterBegin);
     averageSteps = average(deltaLeft, deltaRight);
+
+  if (stepToTravel > averageSteps) {  //return true once distance travelled
+                                      // if (stepToTravel > average(deltaLeft, deltaRight)) { //return true once distance travelled
     return true;
   }
 
@@ -353,7 +400,7 @@ void Robot::scanBothTOF() {
     botTOF->debounceDistance(scanDistanceBot, scanDistanceBotAverage);
     // topTOF->debounceDistance(scanDistanceTop, scanDistanceTopAverage);
 
-    wait(SCAN_DELAY);
+    wait(SCAN_DELAY); //Wait1
   }
 
   scanDistanceBotAverage = scanDistanceBotAverage * cos(radians(0));
@@ -415,7 +462,9 @@ bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to h
   double testLastGetTurnAngle = 0;
 
   while (!isPoleFound and deltaTurnAngle < degreesToScan) {
-    // isPoleFound = poleFound(); //COMMENT OUT FOR TESTING
+    isPoleFound = poleFound(); //COMMENT OUT FOR TESTING
+
+    if(!isPoleFound){
 
     Serial.println("Turning to scan angle " + String(deltaTurnAngle) + "  total " +String(degreesToScan) + "   "+ isPoleFound);
     if (scanDirection == CCW_DIR) {
@@ -426,15 +475,59 @@ bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to h
     }
     testLastGetTurnAngle = gyro->getTurnAngle();
     deltaTurnAngle = abs(gyro->startTurnHeading - testLastGetTurnAngle);
-    wait(1000);  //shorten post testing
+    // wait(100);  //shorten post testing
+    }
   }
   Serial.println("Delta :" + String(deltaTurnAngle));
   Serial.println("Last :" + String(testLastGetTurnAngle)); 
-  wait(2000);
+  // wait(2000);
+  Serial.println("Pole Found: " + String(isPoleFound));
   return isPoleFound;
   // FOR TESTING DRIVING ONLY, POLE FOUND = false;
   // return false;
 }
+/////////////////
+
+bool Robot::searchForPoleContiniousSweep(int scanDirection, int degreesToScan) { // Change to have pole found as an internal robot variable?
+  gyro->resetTripCounter();
+  double deltaTurnAngle = 0;
+  int turnSpeed  = 50;
+  bool isPoleFound = false;
+  double currentHeading = 0;
+  double startAngle = gyro->getTurnAngle();
+
+if (scanDirection == CCW_DIR) {
+  //     leftMotor->drive(turnSpeed, for); 
+  // rightMotor->drive(turnSpeed, rightDir);
+  leftMotor->rev(turnSpeed);
+  rightMotor->fwd(turnSpeed);
+
+    } else if (scanDirection == CW_DIR){
+  //     leftMotor->drive(turnSpeed, leftDir);
+  // rightMotor->drive(turnSpeed, rightDir);
+   leftMotor->fwd(turnSpeed);
+  rightMotor->rev(turnSpeed);
+    }
+  
+  while (!isPoleFound and deltaTurnAngle < degreesToScan) {
+    currentHeading = gyro->getTurnAngle();
+    deltaTurnAngle = currentHeading - startAngle;
+    isPoleFound = poleFound();
+  }
+
+  leftMotor->brake();
+  rightMotor->brake();
+  Serial.println("Delta :" + String(deltaTurnAngle));
+  // wait(2000);
+  Serial.println("Pole Found: " + String(isPoleFound));
+  return isPoleFound;
+  // FOR TESTING DRIVING ONLY, POLE FOUND = false;
+  // return false;
+}
+
+
+
+
 
 // bool Robot::searchForPole(int scanDirection, int degreesToScan) { //another var to be at wall?
 //   //search for pole, if it thinks pole found, do 2 more scans (unless at limit?), if both scans empty, return polefound true and go to that heading
