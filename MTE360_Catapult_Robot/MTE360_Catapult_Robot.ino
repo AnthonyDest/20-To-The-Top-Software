@@ -47,7 +47,7 @@ void setup() {
   Serial.begin(115200);
   //  while (!Serial) {}
   Serial.println("\nSTART---------------------------");
-
+blink(4,50);
   attachInterrupt(ENCA_M1, updateLeftEncoder, CHANGE);
   attachInterrupt(ENCB_M1, updateLeftEncoder, CHANGE);
   attachInterrupt(ENCA_M2, updateRightEncoder, CHANGE);
@@ -68,10 +68,12 @@ void setup() {
 
 void updateLeftEncoder() {
   leftEncoder.EncScanActive();
+  // Serial.println("L " + String(leftEncoder.stepCounter));
   // mesgBot.getOrientationAngle();
 }
 void updateRightEncoder() {
   rightEncoder.EncScanActive();
+  // Serial.println("R " + String(rightEncoder.stepCounter));
   // mesgBot.getOrientationAngle();
 }
 
@@ -88,9 +90,37 @@ void loop() {       //state machine
     case 0:  // starting condition
       blink(10, 100);
       blink(3, 500);
+      // mesgBot.setupSDCard();
 
-      state = 50;
-      // state = 5;
+      // state = 200;
+      state = 3;
+      break;
+
+  case 2:
+        // Serial.println(millis());
+        mesgBot.scanBothTOF();
+        Serial.println("TOP: " + String(mesgBot.scanDistanceTopAverage) + "  Bot " + String(mesgBot.scanDistanceBotAverage));
+        delay(200);
+
+      break;
+
+
+      case 3:
+
+      mesgBot.updateAllGyro();
+      // Serial.println("X: " +  String(gyro.acc_x) + " Y: " + String(gyro.acc_y) +  " Z: " + String(gyro.acc_z));
+       Serial.println("X: " +  String(gyro.acc_x) + " Y: " + String(gyro.acc_y) +  " Z: " + String(gyro.acc_z) + " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+
+      break;
+
+       case 4:
+
+       mesgBot.driveForwardAtCurrentHeadingWithPID(2000, 150);
+
+       state = STATE_END;
+
+      //  wait(20000);
+
       break;
 
  case 5:
@@ -174,8 +204,8 @@ break;
     case 60:  //Look for pole at position 1
       Serial.println("Look for pole 1");
       // wait(1000);
-      // if (mesgBot.searchForPole(CW_DIR, 90 + 30)) {
-      if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+      if (mesgBot.searchForPole(CW_DIR, 90 + 30)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
         state = 70;
@@ -203,8 +233,8 @@ break;
     case 90:
       Serial.println("Start 90");
       // wait(1000);
-      // if (mesgBot.searchForPole(CW_DIR, 30 + 90 + 30)) {
-      if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 30 + 90 + 30)) {  
+      if (mesgBot.searchForPole(CW_DIR, 30 + 90 + 30)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 30 + 90 + 30)) {  
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
         state = 100;
@@ -223,6 +253,123 @@ break;
     //   }
 
     //   break;
+///////////////////
+
+case 200:
+mesgBot.turnToHeading(90);
+state = 220;
+break;
+
+case 220: // Scan 1 Off Wall
+
+if (mesgBot.searchForPole(CW_DIR, 145)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 230;
+      }
+
+break;
+
+case 230: // Move to pos 2
+
+mesgBot.turnToHeading(21);
+mesgBot.driveForwardAtCurrentHeadingWithPID(884, 150);
+state = 240;
+break;
+
+case 240: // turn to heading 2 and scan 2
+mesgBot.turnToHeading(150);
+if (mesgBot.searchForPole(CW_DIR, 260)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 250;
+      }
+
+break;
+
+case 250: //move to position 3:
+mesgBot.turnToHeading(15);
+mesgBot.driveForwardAtCurrentHeadingWithPID(624, 150);
+state = 255;
+break;
+
+case 255: //Scan 3
+mesgBot.turnToHeading(130);
+if (mesgBot.searchForPole(CW_DIR, 230)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 260;
+      }
+break;
+
+
+case 260: // Move to position 4
+mesgBot.turnToHeading(-86);
+mesgBot.driveForwardAtCurrentHeadingWithPID(450, 150);
+state = 270;
+
+break;
+
+case 270: // scan 4
+mesgBot.turnToHeading(0);
+if (mesgBot.searchForPole(CW_DIR, 150)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 280;
+      }
+
+break;
+
+case 280:  // move to 5
+mesgBot.turnToHeading(-140);
+mesgBot.driveForwardAtCurrentHeadingWithPID(675, 150);
+state = 290;
+
+break;
+
+
+case 290:  // Scan 5 CHECK 180 DEGREE ISSUES
+mesgBot.turnToHeading(180);
+ if (mesgBot.searchForPole(CCW_DIR, 155)) {
+      // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100; // else pole not found
+      }
+
+break;
+
+//turn
+// mesgBot.turnToHeading(90);
+
+//Scan
+  //  if (mesgBot.searchForPole(CW_DIR, 90 + 30)) {
+  //     // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
+  //       state = DRIVE_TO_FOUND_POLE_STATE;
+  //     } else {
+  //       state = 70;
+  //     }
+
+//drive
+      // mesgBot.turnToHeading(14);
+      // mesgBot.driveForwardAtCurrentHeadingWithPID(990, 150);
+
+      break;
+
+   
+
+
+
+
+
+
+
+
+
 
 
 ///////////////////////////////////////
@@ -236,7 +383,12 @@ break;
       Serial.println("POLE FOUND");
       // mesgBot.driveForwardAtCurrentHeadingWithPID(250, 150);
       
-      mesgBot.driveForwardAtCurrentHeadingWithPID(mesgBot.linearDistToPole+100, 150);
+      // mesgBot.driveForwardAtCurrentHeadingWithPID(mesgBot.linearDistToPole+100, 150);
+      // mesgBot.driveForwardAtCurrentHeadingWithPIDold(mesgBot.linearDistToPole, 150);
+      if(mesgBot.linearDistToPole < 300){
+        mesgBot.linearDistToPole += 100;
+      }
+      mesgBot.driveForwardAtCurrentHeadingWithPIDPOLE(mesgBot.linearDistToPole, 150);
       Serial.println("DONE");
       state = STATE_END;
       break;
@@ -252,7 +404,8 @@ void wait(double MS) {
   // delay(2000);
   double startTime = millis();
   while ((millis() - startTime) < MS) {
-    mesgBot.getOrientationAngle();
+    // mesgBot.getOrientationAngle();
+    gyro.updateAllAngles();
   };
 }
 void blink(int numberOfBlinks, int blinkDurationMS) {

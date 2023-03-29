@@ -23,6 +23,12 @@ void Gyro::setup() {
   success &= (enableDMP() == ICM_20948_Stat_Ok);
   success &= (resetDMP() == ICM_20948_Stat_Ok);
   success &= (resetFIFO() == ICM_20948_Stat_Ok);
+  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+
+
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
 
   if (success) {
     Serial.println(F("DMP enabled!"));
@@ -31,13 +37,12 @@ void Gyro::setup() {
   }
 }
 
-void Gyro::firstStabalizeGyroValues(){
+void Gyro::firstStabalizeGyroValues() {
 
-  for(int i = 0; i< 100; i++){
+  for (int i = 0; i < 100; i++) {
     Serial.println(getTurnAngle());
     // getTurnAngle();
   }
-
 }
 
 void Gyro::resetAllAngles() {  // aka initalize?, have own variable set to yaw and just += the yaw variable
@@ -86,6 +91,63 @@ bool Gyro::quaternationCalcs() {  // might need to put whole library in a pollin
   }
 }
 
+void Gyro::updateAllAngles() {
+
+  readDMPdataFromFIFO(&data);
+
+  // if (((status == ICM_20948_Stat_Ok) || (status == ICM_20948_Stat_FIFOMoreDataAvail)) && ((data.header & DMP_header_bitmap_Quat6) > 0)) {
+  if ((status == ICM_20948_Stat_Ok) || (status == ICM_20948_Stat_FIFOMoreDataAvail))  // Was valid data available?
+  {
+    if ((data.header & DMP_header_bitmap_Quat6) > 0)  // We have asked for GRV data so we should receive Quat6
+    {
+      q1 = ((double)data.Quat6.Data.Q1) / 1073741824.0;  // Convert to double. Divide by 2^30
+      q2 = ((double)data.Quat6.Data.Q2) / 1073741824.0;  // Convert to double. Divide by 2^30
+      q3 = ((double)data.Quat6.Data.Q3) / 1073741824.0;  // Convert to double. Divide by 2^30
+
+      q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
+      q2sqr = q2 * q2;
+
+      // roll (x-axis rotation)
+      t0 = +2.0 * (q0 * q1 + q2 * q3);
+      t1 = +1.0 - 2.0 * (q1 * q1 + q2sqr);
+      roll = atan2(t0, t1) * 180.0 / PI;
+
+      // pitch (y-axis rotation)
+      t2 = +2.0 * (q0 * q2 - q3 * q1);
+      t2 = t2 > 1.0 ? 1.0 : t2;
+      t2 = t2 < -1.0 ? -1.0 : t2;
+      pitch = asin(t2) * 180.0 / PI;
+
+      // yaw (z-axis rotation)
+      t3 = +2.0 * (q0 * q3 + q1 * q2);
+      t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
+
+      nextYaw = atan2(t3, t4) * 180.0 / PI;
+      // if(!isnan(nextYaw) and abs(yaw-nextYaw) <50){
+      //   yaw = nextYaw;
+      // }
+      if (!isnan(nextYaw)) {
+        yaw = nextYaw;
+      }
+getAGMT();
+      acc_x = (float)data.Raw_Accel.Data.X;  // Extract the raw accelerometer data
+      acc_y = (float)data.Raw_Accel.Data.Y;
+      acc_z = (float)data.Raw_Accel.Data.Z;
+
+      acc_x = getAccMG(acc_x);
+      acc_y = getAccMG(acc_y);
+      acc_z = getAccMG(acc_z);
+
+      // getAGMT();
+      // acc_x =
+      //       acc_x = (float)acc.axes.x; // Extract the raw accelerometer data
+      //       acc_y = (float)acc.axes.y;
+      //       acc_z = (float)acc.axes.xz;
+      //       // Serial.println(acc_x);
+    }
+  }
+}
+
 
 double Gyro::getTurnAngle() {
 
@@ -104,15 +166,14 @@ double Gyro::getTurnAngle() {
       q2sqr = q2 * q2;
       t3 = +2.0 * (q0 * q3 + q1 * q2);
       t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
-      
+
       nextYaw = atan2(t3, t4) * 180.0 / PI;
       // if(!isnan(nextYaw) and abs(yaw-nextYaw) <50){
       //   yaw = nextYaw;
       // }
-      if(!isnan(nextYaw)){
+      if (!isnan(nextYaw)) {
         yaw = nextYaw;
       }
-      
     }
   }
   //  if (status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
@@ -122,9 +183,9 @@ double Gyro::getTurnAngle() {
   return yaw;
 }
 
- void Gyro::resetTripCounter(){
+void Gyro::resetTripCounter() {
   startTurnHeading = getTurnAngle();
- }
+}
 
 // double Gyro::getTurnAngle() {
 //   int errorCounter = 0;
@@ -188,7 +249,7 @@ float Gyro::average(float inputA, float inputB) {
   return (inputA + inputB) / 2;
 }
 
-void Gyro::wait(double MS){
-double startTime = millis();
-while ((millis() - startTime) < MS){};
+void Gyro::wait(double MS) {
+  double startTime = millis();
+  while ((millis() - startTime) < MS) {};
 }

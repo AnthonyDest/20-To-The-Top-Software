@@ -34,11 +34,19 @@ Motor::Motor(int _DIR, int _PWM, int _DirectionInvert):ArduPID(){
 void Motor::setupPID(double &input, double &output, double &setpoint, double &maxSpeed){
   begin(&input, &output, &setpoint, p, i, d);
   setOutputLimits(40, maxSpeed);
-  // setBias(255.0 / 2.0);
-  // setBias(100.0 / 2.0);
   setWindUpLimits(-50, 50); // Groth bounds for the integral term to prevent integral wind-up
   start();
   }
+
+
+void Motor::setupPIDPole(double &input, double &output, double &setpoint, double &maxSpeed){
+  begin(&input, &output, &setpoint, p_pole, i_pole, d_pole);
+  setOutputLimits(40, maxSpeed);
+  setWindUpLimits(-50, 50); // Groth bounds for the integral term to prevent integral wind-up
+  start();
+  }
+
+  
 
   void Motor::setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed){
   begin(&input, &output, &setpoint, pCustom, iCustom, dCustom);

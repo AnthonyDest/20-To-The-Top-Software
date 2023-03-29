@@ -27,6 +27,11 @@ public:
 
   Motor(int DIRpin, int PWMpin, int DirectionInvert);
 
+//turning
+double p_pole = 16.2039;
+double i_pole =20.2906;
+double d_pole = 0;
+
 
 //turning
 double p = 16.2039/400;
@@ -43,7 +48,7 @@ double dCustom = 0;
   // double iCustom = 5.07;
   // double dCustom = 0;
 
-
+void setupPIDPole(double &input, double &output, double &setpoint, double &maxSpeed);
   // void setupPID(double &input, double &output, double &setpoint, double p, double i, double d);
     void setupPID(double &input, double &output, double &setpoint, double &maxSpeed);
     // void setupPID_CUSTOM(double &input, double &output, double &setpoint, double &maxSpeed, double &p, double &i, double &d);

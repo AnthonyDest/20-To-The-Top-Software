@@ -16,6 +16,8 @@ public:
 
   double getTurnAngle();
 
+  void updateAllAngles();
+
   void firstStabalizeGyroValues();
 
   void resetTripCounter();
@@ -23,9 +25,10 @@ public:
   // double deltaTurnAngle = 0;
 
 
-private:
+// private:
 
   icm_20948_DMP_data_t data;
+  // ICM_20948_I2C myICM;
   // double lastGoodValue = 0;
 
   bool quaternationCalcs();
@@ -50,6 +53,12 @@ private:
   double t4 = 0;
   double yaw = 0;
   double nextYaw = 0;
+
+   float acc_x =0;
+      float acc_y =0;
+      float acc_z = 0;
+
+
 float average(float inputA, float inputB);
   double lastValidYaw = 0;
 void wait(double MS);

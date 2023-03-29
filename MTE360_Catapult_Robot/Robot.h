@@ -8,7 +8,7 @@
 #include "Gyro.h"
 
 // #include <SPI.h>
-// #include <SD.h>
+#include <SD.h>
 
 class Robot {
 public:
@@ -65,12 +65,15 @@ public:
   void driveForwardAtCurrentHeading(double distanceMM);
 
   void driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpeed);
+    void driveForwardAtCurrentHeadingWithPIDold(double distanceMM, double maxSpeed);
+    void driveForwardAtCurrentHeadingWithPIDPOLE(double distanceMM, double maxSpeed);
   
   // void forwardDriveDistanceENCMonitor(int speed, float distanceCM);
 
   // TOF Sensor
 
 double getOrientationAngle();
+void updateAllGyro();
 
   void Setup_TOF_Address();
   void scanBothTOF();
@@ -106,8 +109,8 @@ void wait(double MS);
   float initialDistance = 0, currentDistanceTravelled = 0;
   double deltaTurnAngle = 0;
 
-  // File fileSD;
-  // void setupSDCard();
-  // void log(String dataToLog);
+  File fileSD;
+  void setupSDCard();
+  void log(String dataToLog);
 };
 #endif

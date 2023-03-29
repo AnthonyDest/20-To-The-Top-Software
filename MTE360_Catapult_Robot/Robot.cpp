@@ -166,6 +166,9 @@ void Robot::turnDeltaAngleGyro(double angleToTurn, int leftDir, int rightDir) { 
   while (angleToTurn > abs(deltaAngle)) {
     currentHeading = gyro->getTurnAngle();
     deltaAngle = currentHeading - startAngle;
+
+    // Serial.print("L " + String(leftEncoder->stepCounter));
+    // Serial.println("  R " + String(rightEncoder->stepCounter));
     // deltaAngle = fmod((currentHeading - startAngle), 180);
 
     // Serial.println("Current Heading: " + String(currentHeading));
@@ -346,6 +349,103 @@ void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpe
   rightMotor->brake();
 }
 
+
+void Robot::driveForwardAtCurrentHeadingWithPIDPOLE(double distanceMM, double maxSpeed) {
+  double heading = gyro->getTurnAngle();
+  double steerAdjustment = 0;
+
+  double currentHeading = 0;
+  double deltaHeading = 0;
+  // double maxSpeed = 150;
+
+  deltaLeft = 0;  // fix temp storage
+  deltaRight = 0;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  double leftMotorSpeed = 0;
+  double rightMotorSpeed = 0;
+
+  double stepToTravel = distanceMM / MM_PER_STEP;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+  leftMotor->setupPIDPole(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
+  rightMotor->setupPIDPole(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
+
+  while (driveDistanceTracking(stepToTravel)) {
+
+    deltaHeading = (heading - gyro->getTurnAngle());
+
+    leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
+    rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
+    if(leftMotorSpeed<maxSpeed){
+      Serial.print("L: " + String(leftMotorSpeed));
+    }
+    if(rightMotorSpeed<maxSpeed){
+      Serial.print("R: " + String(rightMotorSpeed));
+    }
+
+    if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
+      Serial.println();
+    }
+
+    leftMotor->compute();
+    rightMotor->compute();
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+}
+
+void Robot::driveForwardAtCurrentHeadingWithPIDold(double distanceMM, double maxSpeed) {
+  double heading = gyro->getTurnAngle();
+  double steerAdjustment = 0;
+
+  double currentHeading = 0;
+  double deltaHeading = 0;
+  // double maxSpeed = 150;
+
+  deltaLeft = 0;  // fix temp storage
+  deltaRight = 0;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+
+  double leftMotorSpeed = 0;
+  double rightMotorSpeed = 0;
+
+  double stepToTravel = distanceMM / MM_PER_STEP;
+
+  leftEncoder->resetTripCounter();
+  rightEncoder->resetTripCounter();
+  leftMotor->setupPID(deltaLeft, leftMotorSpeed, stepToTravel, maxSpeed);
+  rightMotor->setupPID(deltaRight, rightMotorSpeed, stepToTravel, maxSpeed);
+
+  while (driveDistanceTracking(stepToTravel)) {
+
+    deltaHeading = (heading - gyro->getTurnAngle());
+
+    leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
+    rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
+    if(leftMotorSpeed<maxSpeed){
+      Serial.print("L: " + String(leftMotorSpeed));
+    }
+    if(rightMotorSpeed<maxSpeed){
+      Serial.print("R: " + String(rightMotorSpeed));
+    }
+
+    if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
+      Serial.println();
+    }
+
+    leftMotor->compute();
+    rightMotor->compute();
+  }
+  leftMotor->brake();
+  rightMotor->brake();
+}
+
 bool Robot::driveDistanceTracking(double stepToTravel) {
   // averageSteps = 0;
 
@@ -367,24 +467,27 @@ double Robot::getOrientationAngle() {  //will need a polling function
   return angle;
 }
 
+void Robot::updateAllGyro() {  //will need a polling function
+  gyro->updateAllAngles();
+}
 
 float Robot::average(float inputA, float inputB) {
   return (inputA + inputB) / 2;
 }
 
 void Robot::Setup_TOF_Address() {
-  // // set pinmode
-  // botTOF->configureResetPin();
+  // set pinmode
+  botTOF->configureResetPin();
 
-  // // Bot has reset pin, top changes address
-  // // reset low
-  // botTOF->resetOn();
+  // Bot has reset pin, top changes address
+  // reset low
+  botTOF->resetOn();
 
-  // //init top with address
-  // topTOF->initalizeTOF(topTOFAddress);
+  //init top with address
+  topTOF->initalizeTOF(topTOFAddress);
 
-  // //reset high
-  // botTOF->resetOff();
+  //reset high
+  botTOF->resetOff();
 
   //init bot no addr
   botTOF->initalizeTOF();
@@ -396,70 +499,80 @@ void Robot::scanBothTOF() {
 
   for (scanCounter = 0; scanCounter < NUMBER_OF_SCANS; scanCounter++) {
     scanDistanceBot = botTOF->scanDistanceMM();
-    // scanDistanceTop = topTOF->scanDistanceMM();
+    scanDistanceTop = topTOF->scanDistanceMM();
     botTOF->debounceDistance(scanDistanceBot, scanDistanceBotAverage);
-    // topTOF->debounceDistance(scanDistanceTop, scanDistanceTopAverage);
+    topTOF->debounceDistance(scanDistanceTop, scanDistanceTopAverage);
 
-    wait(SCAN_DELAY); //Wait1
+    // wait(SCAN_DELAY); //Wait1
   }
 
   scanDistanceBotAverage = scanDistanceBotAverage * cos(radians(0));
   scanDistanceTopAverage = scanDistanceTopAverage * cos(radians(3));
   Serial.println("Bot TOF Distance: " + String(scanDistanceBotAverage));
+  Serial.println("Top TOF Distance: " + String(scanDistanceTopAverage));
   //log("Bot TOF Distance: " + String(scanDistanceBotAverage));
   //log("Top TOF Distance: " + String(scanDistanceTopAverage));
 }
 
-// bool Robot::poleFound() { //will need to edit based on position 1 or 2
-//   //NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
-//   //Have a better tolerance with testing
+bool Robot::poleFound() { //will need to edit based on position 1 or 2
+  //NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
+  //Have a better tolerance with testing
+  scanBothTOF();
+   Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
+  Serial.println("Top AVG: " + String(scanDistanceTopAverage));
+
+  // delay(200);
+
+  //need a better find pole algarthim, need to be careful with >100 as it is good at wall but not at point 2
+  if ( (scanDistanceBotAverage > 10 and scanDistanceBotAverage < 900) and (scanDistanceTopAverage > 10 and scanDistanceTopAverage < 900) ){
+    // if( (scanDistanceBotAverage*0.8 < scanDistanceTopAverage && scanDistanceBotAverage*1.2 > scanDistanceTopAverage) or (scanDistanceBotAverage-50 < scanDistanceTopAverage && scanDistanceBotAverage+50 > scanDistanceTopAverage)){
+    linearDistToPole = average(scanDistanceBotAverage, scanDistanceTopAverage);
+    //log("Pole found, both sensors >100");
+    
+Serial.println("Pole found, both sensors between 10 and 900");
+
+    return true;
+    // }
+  } 
+  //else if (scanDistanceBotAverage > 10 and ) {
+  //   linearDistToPole = scanDistanceBotAverage;
+  //   //log("Pole found, bot sensor");
+  //   Serial.println("Pole found, bot sensor");
+  //   return true;
+
+  // } else if (scanDistanceTopAverage > 100) {
+  //   //log("Pole found, top sensor");
+  //   Serial.println("Pole found, top sensor");
+  //   linearDistToPole = scanDistanceTopAverage;
+  //   return true;
+  // }
+
+  return false;
+}
+
+// bool Robot::poleFound() {
 //   scanBothTOF();
-//    Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
-//   // Serial.println("Top AVG: " + String(scanDistanceTopAverage));
 
-//   delay(200);
-
-//   //need a better find pole algarthim, need to be careful with >100 as it is good at wall but not at point 2
-//   if (scanDistanceBotAverage > 100 & scanDistanceTopAverage > 100) {
-//     linearDistToPole = average(scanDistanceBotAverage, scanDistanceTopAverage);
-//     //log("Pole found, both sensors >100");
-
-// Serial.println("Pole found, both sensors >100");
-
-//     return true;
-//   } else if (scanDistanceBotAverage > 100) {
+//   if (scanDistanceBotAverage > 10 && scanDistanceBotAverage < 900) {
+//     Serial.println("POLE FOUND");
 //     linearDistToPole = scanDistanceBotAverage;
-//     //log("Pole found, bot sensor");
-//     Serial.println("Pole found, bot sensor");
-//     return true;
-
-//   } else if (scanDistanceTopAverage > 100) {
-//     //log("Pole found, top sensor");
-//     Serial.println("Pole found, top sensor");
-//     linearDistToPole = scanDistanceTopAverage;
 //     return true;
 //   }
 
 //   return false;
 // }
 
-bool Robot::poleFound() {
-  scanBothTOF();
-
-  if (scanDistanceBotAverage > 10 && scanDistanceBotAverage < 900) {
-    Serial.println("POLE FOUND");
-    linearDistToPole = scanDistanceBotAverage;
-    return true;
-  }
-
-  return false;
-}
-
 bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to have pole found as an internal robot variable?
-  gyro->resetTripCounter();
-  deltaTurnAngle = 0;
+  // gyro->resetTripCounter();
+  // deltaTurnAngle = 0;
+  // bool isPoleFound = false;
+  // double testLastGetTurnAngle = 0;
+  double deltaTurnAngle = 0;
+  int turnSpeed  = 50;
   bool isPoleFound = false;
-  double testLastGetTurnAngle = 0;
+  double currentHeading = 0;
+  double startAngle = gyro->getTurnAngle();
+
 
   while (!isPoleFound and deltaTurnAngle < degreesToScan) {
     isPoleFound = poleFound(); //COMMENT OUT FOR TESTING
@@ -468,18 +581,25 @@ bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to h
 
     Serial.println("Turning to scan angle " + String(deltaTurnAngle) + "  total " +String(degreesToScan) + "   "+ isPoleFound);
     if (scanDirection == CCW_DIR) {
-      leftTurnStationaryPID(50);
+      leftTurnStationaryPID(turnSpeed);
       // turnDeltaAngleGyro(0.5, FORWARD_DIR, BACKWARD_DIR);
     } else if (scanDirection == CW_DIR){
-      rightTurnStationaryPID(50);
+      rightTurnStationaryPID(turnSpeed);
     }
-    testLastGetTurnAngle = gyro->getTurnAngle();
-    deltaTurnAngle = abs(gyro->startTurnHeading - testLastGetTurnAngle);
+
+      currentHeading = gyro->getTurnAngle();
+deltaTurnAngle = abs(currentHeading - startAngle);
+
+  // while (angleToTurn > abs(deltaAngle)) {
+  //   currentHeading = gyro->getTurnAngle();
+  //   deltaAngle = currentHeading - startAngle;
+    // testLastGetTurnAngle = gyro->getTurnAngle();
+    // deltaTurnAngle = abs(gyro->startTurnHeading - testLastGetTurnAngle);
     // wait(100);  //shorten post testing
     }
   }
   Serial.println("Delta :" + String(deltaTurnAngle));
-  Serial.println("Last :" + String(testLastGetTurnAngle)); 
+  Serial.println("Last :" + String(currentHeading)); 
   // wait(2000);
   Serial.println("Pole Found: " + String(isPoleFound));
   return isPoleFound;
@@ -571,39 +691,40 @@ if (scanDirection == CCW_DIR) {
 
 // }
 
-// void Robot::setupSDCard(){
-// if (!SD.begin(4)) {
-//     //log("initialization failed!");
-//     while (1);
-//   }
-//  //log("initialization done.");
+void Robot::setupSDCard(){
+if (!SD.begin(4)) {
+    //log("initialization failed!");
+    while (1);
+  }
+ //log("initialization done.");
 
-// String fileNameForSD = "data1.txt";
-// int runIteration = 2;
+String fileNameForSD = "data1.txt";
+int runIteration = 2;
 
-// while(!SD.exists(fileNameForSD)){
-// fileNameForSD = "data"; // I hate strings and this works
-// fileNameForSD += String(runIteration);
-// fileNameForSD += ".txt";
-// runIteration++;
-// }
+while(!SD.exists(fileNameForSD)){
+fileNameForSD = "data"; // I hate strings and this works
+fileNameForSD += String(runIteration);
+fileNameForSD += ".txt";
+runIteration++;
+}
 
-//  fileSD = SD.open(fileNameForSD, FILE_WRITE);
+ fileSD = SD.open(fileNameForSD, FILE_WRITE);
 
-// }
-// void Robot:://log(String dataTo//log){
+}
+void Robot::log(String dataTolog){
 
-//   Serial.println(dataTo//log);
-//   if(fileSD){
-//     fileSD.print(millis() + "   ");
-//     fileSD.println(dataTo//log);
-//   }
-// }
+  Serial.println(dataTolog);
+  if(fileSD){
+    fileSD.print(millis() + "   ");
+    fileSD.println(dataTolog);
+  }
+}
 
 void Robot::wait(double MS){
 double startTime = millis();
 while ((millis() - startTime) < MS){
-   gyro->getTurnAngle(); //temp replace of interupts
+  //  gyro->getTurnAngle(); //temp replace of interupts
+  gyro->updateAllAngles();
 };
 
 }
