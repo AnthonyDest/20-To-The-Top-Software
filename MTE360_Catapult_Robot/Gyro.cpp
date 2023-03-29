@@ -17,24 +17,37 @@ void Gyro::setup() {
 
   bool success = true;
   success &= (initializeDMP() == ICM_20948_Stat_Ok);
+
+  
   success &= (enableDMPSensor(INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR) == ICM_20948_Stat_Ok);
-  success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 0) == ICM_20948_Stat_Ok);
+  
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_MAGNETIC_FIELD_UNCALIBRATED) == ICM_20948_Stat_Ok);
+  
+
+  success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 10) == ICM_20948_Stat_Ok);        // Set to 5Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro, 54) == ICM_20948_Stat_Ok);         // Set to 1Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Cpass, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Cpass_Calibr, 54) == ICM_20948_Stat_Ok); // Set to 1Hz
+
   success &= (enableFIFO() == ICM_20948_Stat_Ok);
   success &= (enableDMP() == ICM_20948_Stat_Ok);
   success &= (resetDMP() == ICM_20948_Stat_Ok);
   success &= (resetFIFO() == ICM_20948_Stat_Ok);
-  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
 
-
-  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
-  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
-  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
 
   if (success) {
     Serial.println(F("DMP enabled!"));
   } else {
     Serial.println(F("Enable DMP failed!"));
   }
+
+
+
+
 }
 
 void Gyro::firstStabalizeGyroValues() {
@@ -94,7 +107,7 @@ bool Gyro::quaternationCalcs() {  // might need to put whole library in a pollin
 void Gyro::updateAllAngles() {
 
   readDMPdataFromFIFO(&data);
-
+   success = 0; 
   // if (((status == ICM_20948_Stat_Ok) || (status == ICM_20948_Stat_FIFOMoreDataAvail)) && ((data.header & DMP_header_bitmap_Quat6) > 0)) {
   if ((status == ICM_20948_Stat_Ok) || (status == ICM_20948_Stat_FIFOMoreDataAvail))  // Was valid data available?
   {
@@ -129,14 +142,26 @@ void Gyro::updateAllAngles() {
       if (!isnan(nextYaw)) {
         yaw = nextYaw;
       }
-getAGMT();
-      acc_x = (float)data.Raw_Accel.Data.X;  // Extract the raw accelerometer data
-      acc_y = (float)data.Raw_Accel.Data.Y;
-      acc_z = (float)data.Raw_Accel.Data.Z;
 
-      acc_x = getAccMG(acc_x);
-      acc_y = getAccMG(acc_y);
-      acc_z = getAccMG(acc_z);
+      float acc_x_new = (float)data.Raw_Accel.Data.X;  // Extract the raw accelerometer data
+      float acc_y_new  = (float)data.Raw_Accel.Data.Y;
+      float acc_z_new = (float)data.Raw_Accel.Data.Z;
+
+      acc_x_change = (acc_x - acc_x_new);  // record change
+      acc_y_change = (acc_y - acc_y_new);
+      acc_z_change = (acc_z - acc_z_new);
+
+   
+
+      acc_x = (acc_x*0.1 + acc_x_new*0.9);  // average new data
+      acc_y = (acc_y*0.1 + acc_y_new*0.9); 
+      acc_z = (acc_z*0.1 + acc_z_new*0.9); 
+      success = true;
+
+
+//      acc_x = getAccMG(acc_x);
+//      acc_y = getAccMG(acc_y);
+//      acc_z = getAccMG(acc_z);
 
       // getAGMT();
       // acc_x =

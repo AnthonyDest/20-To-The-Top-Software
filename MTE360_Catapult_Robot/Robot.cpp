@@ -265,6 +265,10 @@ void Robot::driveForwardAtCurrentHeading(double distanceMM) {
 }
 /////////////////////////////////////////////////////////////////////////
 
+void Robot::drive(double speed, bool direction) {
+    leftMotor->drive(speed, direction);
+    rightMotor->drive(speed, direction);
+}
 
 void Robot::forwardDriveDistance(double distanceMM, double speed) {
 
@@ -380,6 +384,7 @@ void Robot::driveForwardAtCurrentHeadingWithPIDPOLE(double distanceMM, double ma
 
     leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
     rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
+    /*
     if(leftMotorSpeed<maxSpeed){
       Serial.print("L: " + String(leftMotorSpeed));
     }
@@ -390,7 +395,7 @@ void Robot::driveForwardAtCurrentHeadingWithPIDPOLE(double distanceMM, double ma
     if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
       Serial.println();
     }
-
+      */
     leftMotor->compute();
     rightMotor->compute();
   }

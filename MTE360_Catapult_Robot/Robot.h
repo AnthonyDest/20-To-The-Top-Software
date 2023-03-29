@@ -28,6 +28,8 @@ public:
   //zzDrive robot fwd, customize speed and time?) - speed only for now, all will have a 5 second oh shit timmer
   //need to determine if we want to do forward(+value) backward(+value) or just a drive and parameter symbol will determine direction (currently just doing explicity Fwd/rev)
   void forwardDrive(int speed);
+  void drive(double speed, bool direction);
+
   // void forwardDrive();
 
   void backwardDrive(int speed);

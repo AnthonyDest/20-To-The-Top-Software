@@ -22,6 +22,8 @@
 
 const int STATE_END = 550;
 const int DRIVE_TO_FOUND_POLE_STATE = 500;
+const float accelYFallingUp = 200.0;
+const float accelYFallingLow = 10.0;
 
 const int DirectionInvertLeft = 1;
 const int DirectionInvertRight = 1;
@@ -85,15 +87,33 @@ void loop() {       //state machine
                     //   Serial.println("STOPPED");
                     // }
                     // wait(5000);
-  switch (state) {  // LOOK LINE 414 ROBOT FOR TESTING SCAN DISABLED
 
+  double x_roll_start = 0;;
+  double y_pitch_start = 0;
+  double z_yaw_start = 0;
+  double x_roll = 0;;
+  double y_pitch = 0;
+  double z_yaw = 0;
+  float y_change = 0;
+  switch (state) {  // LOOK LINE 414 ROBOT FOR TESTING SCAN DISABLED
+      x_roll_start = gyro.roll;
+      y_pitch_start = gyro.pitch;
+      z_yaw_start = gyro.yaw;
     case 0:  // starting condition
       blink(10, 100);
+      mesgBot.updateAllGyro();
+     /* while(gyro.acc_x_change != 0 && gyro.acc_y_change != 0 && gyro.acc_z_change != 0)
+      {
+          mesgBot.updateAllGyro();
+          // Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+
+      }
+      */
       blink(3, 500);
       // mesgBot.setupSDCard();
 
       // state = 200;
-      state = 3;
+      state = 30;
       break;
 
   case 2:
@@ -109,8 +129,10 @@ void loop() {       //state machine
 
       mesgBot.updateAllGyro();
       // Serial.println("X: " +  String(gyro.acc_x) + " Y: " + String(gyro.acc_y) +  " Z: " + String(gyro.acc_z));
-       Serial.println("X: " +  String(gyro.acc_x) + " Y: " + String(gyro.acc_y) +  " Z: " + String(gyro.acc_z) + " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
-
+       if(gyro.success)
+       {
+       Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+       }
       break;
 
        case 4:
@@ -137,7 +159,7 @@ mesgBot.driveForwardAtCurrentHeadingWithPID(250, 255);
 state = STATE_END;
  break;
 
-  case 6:
+case 6:
 
       mesgBot.driveForwardAtCurrentHeadingWithPID(30, 150);
 
@@ -182,6 +204,78 @@ for(int i=0; i<10; i++){
 
 break;
 
+case 30:
+  Serial.print("get off wall");
+  
+  
+      /*
+      x_roll_start = gyro.roll;
+      y_pitch_start = gyro.pitch;
+      z_yaw_start = gyro.yaw;
+      */
+    
+           while(!gyro.success)
+          {
+            mesgBot.updateAllGyro();
+          }
+      y_change = abs(gyro.acc_y_change);
+      while( ( abs(accelYFallingLow) < y_change ))
+      {
+
+          mesgBot.updateAllGyro();
+          while(!gyro.success)
+          {
+            mesgBot.updateAllGyro();
+          }
+         // if(gyro.success)
+          //{
+            Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+            y_change = gyro.acc_y_change;
+            Serial.println(y_change);
+         // }
+
+      }  //&& (abs(gyro.acc_y_change) < accelYFallingUp));
+      Serial.print("no longer falling");
+      Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+
+
+      x_roll = x_roll_start - gyro.roll;
+      y_pitch = y_pitch_start - gyro.pitch;
+      z_yaw = z_yaw_start - gyro.yaw;
+
+      Serial.println("X: " +  String(x_roll) + " Y: " + String(y_pitch) + " Z: " + String(z_yaw));
+
+      if(abs(x_roll) > 60)
+      {
+        Serial.print("robot backwards");
+        while(z_yaw > 0)
+        {
+            mesgBot.drive(100, FORWARD_DIR );
+            mesgBot.updateAllGyro();
+            y_pitch = y_pitch_start - gyro.pitch;
+        }
+        mesgBot.reverseDriveDistance(10, 200);
+      }
+      else
+      {
+        Serial.print("robot forwards");
+
+        while(y_pitch > 0)
+        {
+            mesgBot.drive(100, FORWARD_DIR);
+            mesgBot.updateAllGyro();
+            y_pitch = y_pitch_start - gyro.pitch;
+        }
+        mesgBot.forwardDriveDistance(10, 200);
+      }
+     state = 50;
+
+  Serial.print("Done falling");
+
+break;
+
+
+
       // case 5: 
       //   mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
 
@@ -192,14 +286,14 @@ break;
       //   state = STATE_END;
       //   break;
 
-    case 50:  // rotate to start scan 1 heading
+case 50:  // rotate to start scan 1 heading
       Serial.println("turn to 90");
       // wait(5000);
       mesgBot.turnToHeading(90);
       state = 60;
       Serial.println("EXIT  STATE 50");
       // wait(3000);
-      break;
+  break;
 
     case 60:  //Look for pole at position 1
       Serial.println("Look for pole 1");
@@ -359,17 +453,6 @@ break;
       // mesgBot.driveForwardAtCurrentHeadingWithPID(990, 150);
 
       break;
-
-   
-
-
-
-
-
-
-
-
-
 
 
 ///////////////////////////////////////
