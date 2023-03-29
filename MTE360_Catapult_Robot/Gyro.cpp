@@ -27,7 +27,7 @@ void Gyro::setup() {
   
 
   success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 10) == ICM_20948_Stat_Ok);        // Set to 5Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
+  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 10) == ICM_20948_Stat_Ok);        // Set to 1Hz
   success &= (setDMPODRrate(DMP_ODR_Reg_Gyro, 54) == ICM_20948_Stat_Ok);         // Set to 1Hz
   success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
   success &= (setDMPODRrate(DMP_ODR_Reg_Cpass, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
@@ -153,9 +153,9 @@ void Gyro::updateAllAngles() {
 
    
 
-      acc_x = (acc_x*0.1 + acc_x_new*0.9);  // average new data
-      acc_y = (acc_y*0.1 + acc_y_new*0.9); 
-      acc_z = (acc_z*0.1 + acc_z_new*0.9); 
+      acc_x = (acc_x*0.5 + acc_x_new*0.5);  // average new data
+      acc_y = (acc_y*0.5 + acc_y_new*0.5); 
+      acc_z = (acc_z*0.5 + acc_z_new*0.5); 
       success = true;
 
 
