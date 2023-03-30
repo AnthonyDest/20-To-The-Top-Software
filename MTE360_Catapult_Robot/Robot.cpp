@@ -335,16 +335,16 @@ void Robot::driveForwardAtCurrentHeadingWithPID(double distanceMM, double maxSpe
 
     leftMotor->drive(leftMotorSpeed - deltaHeading, FORWARD_DIR);
     rightMotor->drive(rightMotorSpeed + deltaHeading, FORWARD_DIR);
-    if(leftMotorSpeed<maxSpeed){
-      Serial.print("L: " + String(leftMotorSpeed));
-    }
-    if(rightMotorSpeed<maxSpeed){
-      Serial.print("R: " + String(rightMotorSpeed));
-    }
+    // if(leftMotorSpeed<maxSpeed){
+    //   Serial.print("L: " + String(leftMotorSpeed));
+    // }
+    // if(rightMotorSpeed<maxSpeed){
+    //   Serial.print("R: " + String(rightMotorSpeed));
+    // }
 
-    if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
-      Serial.println();
-    }
+    // if(leftMotorSpeed<maxSpeed or rightMotorSpeed<maxSpeed){
+    //   Serial.println();
+    // }
 
     leftMotor->compute();
     rightMotor->compute();

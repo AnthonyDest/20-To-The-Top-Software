@@ -44,7 +44,7 @@ void Gyro::setup() {
   } else {
     Serial.println(F("Enable DMP failed!"));
   }
-
+  wait(5000);
 
 
 
@@ -52,8 +52,12 @@ void Gyro::setup() {
 
 void Gyro::firstStabalizeGyroValues() {
 
-  for (int i = 0; i < 100; i++) {
-    Serial.println(getTurnAngle());
+  while (yaw < 0.2) {
+    //Serial.println(getTurnAngle());
+    updateAllAngles();
+    Serial.println("X: " +  String(acc_x) + "," + String(acc_x_change) + " Y: " + String(acc_y) + "," + String(acc_y_change) +  " Z: " + String(acc_z)  + "," + String(acc_z_change)+ " Roll: " +  String(roll) + " Pitch: " + String(pitch) +  " Yaw: " + String(yaw));
+
+
     // getTurnAngle();
   }
 }

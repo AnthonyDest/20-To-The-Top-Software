@@ -24,7 +24,7 @@ const int STATE_END = 550;
 const int DRIVE_TO_FOUND_POLE_STATE = 500;
 const float accelYFallingHigh = 700.0;
 const float accelYFallingLow = 10.0;
-const double timer = 3000;
+const double timer = 1000;
 double start_time = 0;
 
 const int DirectionInvertLeft = 1;
@@ -49,15 +49,15 @@ Robot mesgBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF, 
 
 void setup() {
   Serial.begin(115200);
-  //  while (!Serial) {}
+  // while (!Serial) {}
   Serial.println("\nSTART---------------------------");
   blink(4, 50);
   attachInterrupt(ENCA_M1, updateLeftEncoder, CHANGE);
   attachInterrupt(ENCB_M1, updateLeftEncoder, CHANGE);
   attachInterrupt(ENCA_M2, updateRightEncoder, CHANGE);
   attachInterrupt(ENCB_M2, updateRightEncoder, CHANGE);
-
   mesgBot.allConfiguration();
+
   //  botTOF.initalizeTOF();
 
   state = 0;
@@ -67,7 +67,7 @@ void setup() {
   // wait(500);
   //     leftMotor.drive(255, 1);
   // gyro.setup();
-  wait(100);  // replace with wait to stabalize gyro ?
+  //wait(100);  // replace with wait to stabalize gyro ?
 }
 
 void updateLeftEncoder() {
@@ -107,26 +107,26 @@ void loop() {  //state machine
       x_roll_start = gyro.roll;
       y_pitch_start = gyro.pitch;
       z_yaw_start = gyro.yaw;
-      /* while(gyro.acc_x_change != 0 && gyro.acc_y_change != 0 && gyro.acc_z_change != 0)
-      {
-          mesgBot.updateAllGyro();
-          // Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
+     //  while(gyro.acc_x_change != 0 && gyro.acc_y_change != 0 && gyro.acc_z_change != 0)
+     // {
+      //    mesgBot.updateAllGyro();
+          //Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
 
-      }
-      */
+     // }
+      
       blink(3, 500);
       start_time = millis();
       // mesgBot.setupSDCard();
 
-      // state = 200;
-      state = 3;
+      state = 200;
+      // state = 30;
       break;
 
     case 2:
       // Serial.println(millis());
       mesgBot.scanBothTOF();
       Serial.println("TOP: " + String(mesgBot.scanDistanceTopAverage) + "  Bot " + String(mesgBot.scanDistanceBotAverage));
-      delay(200);
+      delay(50);
 
       break;
 
@@ -146,7 +146,7 @@ void loop() {  //state machine
 
       state = STATE_END;
 
-      //  wait(20000);
+        wait(20000);
 
       break;
 
@@ -154,7 +154,7 @@ void loop() {  //state machine
 
       mesgBot.driveForwardAtCurrentHeadingWithPID(100, 255);
 
-      wait(7500);
+     wait(7500);
 
       mesgBot.driveForwardAtCurrentHeadingWithPID(150, 200);
 
@@ -209,6 +209,18 @@ void loop() {  //state machine
 
       break;
 
+
+      case 7:
+
+        mesgBot.reverseDrivePID(50);
+        wait(3000);
+
+        mesgBot.reverseDrivePID(200);
+        wait(3000);
+
+    break;
+
+
     case 30:
       Serial.print("get off wall");
 
@@ -218,7 +230,7 @@ void loop() {  //state machine
       y_pitch_start = gyro.pitch;
       z_yaw_start = gyro.yaw;
       */
-
+      /*
       while (!gyro.success) {
         mesgBot.updateAllGyro();
       }
@@ -252,11 +264,12 @@ void loop() {  //state machine
         // }
 
       }  //&& (abs(gyro.acc_y_change) < accelYFallingUp));
+      */
       while(millis() < (timer - start_time));
       Serial.print("no longer falling");
       Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
 
-
+      
       x_roll = x_roll_start - gyro.roll;
       y_pitch = y_pitch_start - gyro.pitch;
       z_yaw = z_yaw_start - gyro.yaw;
@@ -271,7 +284,24 @@ void loop() {  //state machine
           y_pitch = y_pitch_start - gyro.pitch;
         }
         mesgBot.reverseDriveDistance(10, 200);
-      } else {
+      } 
+      else if (abs(z_yaw) > 45 ){ //Too far turned right or left, face wall, reverse, then turn to right heading
+        Serial.println("(abs(z_yaw) > 45 )   Too spun around");
+        //mesgBot.turnToHeading(180);
+        mesgBot.reverseDrivePID(50);    
+
+        //remove later
+        wait(2000);
+        mesgBot.turnToHeading(90);
+      
+      }else if (abs(z_yaw) < 45 ){ //Slightly turned right or left, drive off the wall a bit, orientate, drive off wall normal distance, then turn to right heading
+      Serial.println("(abs(z_yaw) < 45 ) Slightly turned");
+
+      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);  
+      mesgBot.turnToHeading(0);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
+      } 
+      else {
         Serial.print("robot forwards");
 
         while (y_pitch > 0) {
@@ -281,7 +311,7 @@ void loop() {  //state machine
         }
         mesgBot.forwardDriveDistance(10, 200);
       }
-      state = 50;
+      state = STATE_END;
 
       Serial.print("Done falling");
 
