@@ -109,7 +109,7 @@ void Robot::drivePID(double stepToTravel, int leftMotorDir, int rightMotorDir, d
     rightMotor->drive(rightMotorSpeed, rightMotorDir);
     leftMotor->compute();
     rightMotor->compute();
-    // gyro->getTurnAngle(); //temp replace of interupts
+    gyro->getTurnAngle(); //temp replace of interupts
   }
   leftMotor->brake();
   rightMotor->brake();
@@ -135,7 +135,7 @@ void Robot::reverseDrivePID(double distanceMM) {
 
 void Robot::turnToHeading(double heading) {
 
-  double currentAngle = gyro->getTurnAngle();
+  double currentAngle = gyro->getTurnAngle(); //-110
   double deltaAngle = 0;
 
   deltaAngle = heading - currentAngle;
@@ -171,8 +171,8 @@ void Robot::turnDeltaAngleGyro(double angleToTurn, int leftDir, int rightDir) { 
     // Serial.println("  R " + String(rightEncoder->stepCounter));
     // deltaAngle = fmod((currentHeading - startAngle), 180);
 
-    // Serial.println("Current Heading: " + String(currentHeading));
-    //  Serial.println("Delta Angle: " + String(deltaAngle));
+    Serial.println("Current Heading: " + String(currentHeading));
+     Serial.println("Delta Angle: " + String(deltaAngle));
 
     // //log("Angle to turn: " + String(angleToTurn) + "   D" + String(deltaAngle));
     // wait(10);
@@ -483,16 +483,19 @@ float Robot::average(float inputA, float inputB) {
 void Robot::Setup_TOF_Address() {
   // set pinmode
   botTOF->configureResetPin();
+  Serial.println("TOF RESET PIN CONFIGURED");
 
   // Bot has reset pin, top changes address
   // reset low
   botTOF->resetOn();
+  Serial.println("TOF RESET PIN ON");
 
   //init top with address
   topTOF->initalizeTOF(topTOFAddress);
 
   //reset high
   botTOF->resetOff();
+  Serial.println("TOF RESET PIN OFF");
 
   //init bot no addr
   botTOF->initalizeTOF();
@@ -572,19 +575,31 @@ bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to h
   // deltaTurnAngle = 0;
   // bool isPoleFound = false;
   // double testLastGetTurnAngle = 0;
-  double deltaTurnAngle = 0;
+//   double deltaTurnAngle = 0;
+//   int turnSpeed  = 50;
+//   bool isPoleFound = false;
+//   double currentHeading = 0;
+//   gyro->updateAllAngles();
+// double startAngle = gyro->yaw;
+
   int turnSpeed  = 50;
   bool isPoleFound = false;
-  double currentHeading = 0;
+double deltaTurnAngle = 0;
   double startAngle = gyro->getTurnAngle();
+  double currentHeading = 0;
 
+  // double startAngle = gyro->getTurnAngle();
 
-  while (!isPoleFound and deltaTurnAngle < degreesToScan) {
+//  while (angleToTurn > abs(deltaAngle)) {
+    // currentHeading = gyro->getTurnAngle();
+    // deltaTurnAngle = currentHeading - startAngle;
+
+  while (!isPoleFound and degreesToScan > abs(deltaTurnAngle)) {
     isPoleFound = poleFound(); //COMMENT OUT FOR TESTING
 
     if(!isPoleFound){
 
-    Serial.println("Turning to scan angle " + String(deltaTurnAngle) + "  total " +String(degreesToScan) + "   "+ isPoleFound);
+    Serial.println("Turning to scan angle " + String(deltaTurnAngle) + "  total " + String(degreesToScan) + "   "+ isPoleFound);
     if (scanDirection == CCW_DIR) {
       leftTurnStationaryPID(turnSpeed);
       // turnDeltaAngleGyro(0.5, FORWARD_DIR, BACKWARD_DIR);
@@ -592,8 +607,12 @@ bool Robot::searchForPole(int scanDirection, int degreesToScan) { // Change to h
       rightTurnStationaryPID(turnSpeed);
     }
 
-      currentHeading = gyro->getTurnAngle();
-deltaTurnAngle = abs(currentHeading - startAngle);
+currentHeading = gyro->getTurnAngle();
+  deltaTurnAngle = currentHeading - startAngle;
+      // currentHeading = gyro->getTurnAngle();
+//       gyro->updateAllAngles();
+//       currentHeading = gyro->yaw;
+// deltaTurnAngle = abs(currentHeading - startAngle);
 
   // while (angleToTurn > abs(deltaAngle)) {
   //   currentHeading = gyro->getTurnAngle();

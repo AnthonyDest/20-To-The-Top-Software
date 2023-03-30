@@ -50,6 +50,7 @@ Robot mesgBot(leftMotor, rightMotor, leftEncoder, rightEncoder, botTOF, topTOF, 
 void setup() {
   Serial.begin(115200);
   // while (!Serial) {}
+  // delay(5000);
   Serial.println("\nSTART---------------------------");
   blink(4, 50);
   attachInterrupt(ENCA_M1, updateLeftEncoder, CHANGE);
@@ -119,7 +120,7 @@ void loop() {  //state machine
       // mesgBot.setupSDCard();
 
       state = 200;
-      // state = 30;
+      // state = 8;
       break;
 
     case 2:
@@ -217,6 +218,28 @@ void loop() {  //state machine
 
         mesgBot.reverseDrivePID(200);
         wait(3000);
+
+    break;
+
+    case 8:
+    Serial.println("heading1 " + String(gyro.yaw));
+    mesgBot.driveForwardAtCurrentHeadingWithPID(400, 150);
+ Serial.println("heading2 " + String(gyro.yaw));
+    wait(2000);
+ Serial.println("heading3 " + String(gyro.yaw));
+    mesgBot.turnToHeading(90);
+    Serial.println("heading4 " + String(gyro.yaw));
+    wait(1000);
+    Serial.println("heading5 " + String(gyro.yaw));
+     mesgBot.turnToHeading(-45);
+     Serial.println("heading6 " + String(gyro.yaw));
+     
+     wait(1000);
+     Serial.println("heading7 " + String(gyro.yaw));
+     mesgBot.turnToHeading(14);
+      Serial.println("heading8 " + String(gyro.yaw));
+
+  state = STATE_END;
 
     break;
 
@@ -404,15 +427,18 @@ void loop() {  //state machine
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
         state = 230;
+        // state =STATE_END; //zzRemove
       }
 
       break;
 
     case 230:  // Move to pos 2
-
+      wait(500);
       mesgBot.turnToHeading(21);
+      wait(500);
       mesgBot.driveForwardAtCurrentHeadingWithPID(884, 150);
       state = 240;
+      // state =STATE_END; //zzRemove
       break;
 
     case 240:  // turn to heading 2 and scan 2
@@ -421,29 +447,36 @@ void loop() {  //state machine
         // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
+        // state =STATE_END; //zzRemove
         state = 250;
       }
 
       break;
 
     case 250:  //move to position 3:
-      mesgBot.turnToHeading(15);
+      mesgBot.turnToHeading(5);
+      wait(500);
       mesgBot.driveForwardAtCurrentHeadingWithPID(624, 150);
       state = 255;
       break;
 
     case 255:  //Scan 3
       mesgBot.turnToHeading(130);
+      wait(500);
+      // blink(30,10);
+      // wait(2000);
       if (mesgBot.searchForPole(CW_DIR, 230)) {
         // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
         state = 260;
+        blink(15,30);
       }
       break;
 
 
     case 260:  // Move to position 4
+    // blink(5,250);
       mesgBot.turnToHeading(-86);
       mesgBot.driveForwardAtCurrentHeadingWithPID(450, 150);
       state = 270;

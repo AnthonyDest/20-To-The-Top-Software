@@ -17,7 +17,7 @@ if(!begin()) {
 
 void TOFSensor::initalizeTOF(uint8_t new_addr){
   Serial.println("Start TOF");
-if(!begin(new_addr)) {
+if(!begin(new_addr, true)) {
     Serial.println(F("Failed to boot First VL53L0X"));
     while(1);
   } else{
@@ -28,17 +28,17 @@ if(!begin(new_addr)) {
 
 void TOFSensor::configureResetPin() {
   pinMode(RESET_PIN, OUTPUT);
-  delay(10);
+  delay(100);
 }
 
 void TOFSensor::resetOn() {
   digitalWrite(RESET_PIN, LOW);
-  delay(10);
+  delay(100);
 }
 
 void TOFSensor::resetOff() {
   digitalWrite(RESET_PIN, HIGH);
-  delay(10);
+  delay(100);
 }
 
 uint16_t TOFSensor::scanDistanceMM(){

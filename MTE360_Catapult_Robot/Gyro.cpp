@@ -1,3 +1,4 @@
+#include "wiring_constants.h"
 #include <cmath>
 #include "Gyro.h"
 #define WIRE_PORT Wire
@@ -16,27 +17,39 @@ void Gyro::setup() {
   begin(WIRE_PORT, AD0_VAL);
 
   bool success = true;
-  success &= (initializeDMP() == ICM_20948_Stat_Ok);
-
+  // success &= (initializeDMP() == ICM_20948_Stat_Ok);
+  // success &= (enableDMPSensor(INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR) == ICM_20948_Stat_Ok);
   
+  // success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
+  // success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  // success &= (enableDMPSensor(INV_ICM20948_SENSOR_MAGNETIC_FIELD_UNCALIBRATED) == ICM_20948_Stat_Ok);
+  
+
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 10) == ICM_20948_Stat_Ok);        // Set to 5Hz
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 10) == ICM_20948_Stat_Ok);        // Set to 1Hz
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Gyro, 54) == ICM_20948_Stat_Ok);         // Set to 1Hz
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Cpass, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
+  // success &= (setDMPODRrate(DMP_ODR_Reg_Cpass_Calibr, 54) == ICM_20948_Stat_Ok); // Set to 1Hz
+
+  // success &= (enableFIFO() == ICM_20948_Stat_Ok);
+  // success &= (enableDMP() == ICM_20948_Stat_Ok);
+  // success &= (resetDMP() == ICM_20948_Stat_Ok);
+  // success &= (resetFIFO() == ICM_20948_Stat_Ok);
+
+success &= (initializeDMP() == ICM_20948_Stat_Ok);
   success &= (enableDMPSensor(INV_ICM20948_SENSOR_GAME_ROTATION_VECTOR) == ICM_20948_Stat_Ok);
-  
-  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
-  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
-  success &= (enableDMPSensor(INV_ICM20948_SENSOR_MAGNETIC_FIELD_UNCALIBRATED) == ICM_20948_Stat_Ok);
-  
-
-  success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 10) == ICM_20948_Stat_Ok);        // Set to 5Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 10) == ICM_20948_Stat_Ok);        // Set to 1Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro, 54) == ICM_20948_Stat_Ok);         // Set to 1Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Cpass, 54) == ICM_20948_Stat_Ok);        // Set to 1Hz
-  success &= (setDMPODRrate(DMP_ODR_Reg_Cpass_Calibr, 54) == ICM_20948_Stat_Ok); // Set to 1Hz
-
+  success &= (setDMPODRrate(DMP_ODR_Reg_Quat6, 0) == ICM_20948_Stat_Ok);
   success &= (enableFIFO() == ICM_20948_Stat_Ok);
   success &= (enableDMP() == ICM_20948_Stat_Ok);
   success &= (resetDMP() == ICM_20948_Stat_Ok);
   success &= (resetFIFO() == ICM_20948_Stat_Ok);
+  success &= (setDMPODRrate(DMP_ODR_Reg_Gyro_Calibr, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+
+
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_ACCELEROMETER) == ICM_20948_Stat_Ok);
+  success &= (setDMPODRrate(DMP_ODR_Reg_Accel, 54) == ICM_20948_Stat_Ok);  // Set to 1Hz
+  success &= (enableDMPSensor(INV_ICM20948_SENSOR_RAW_GYROSCOPE) == ICM_20948_Stat_Ok);
 
 
   if (success) {
@@ -44,22 +57,37 @@ void Gyro::setup() {
   } else {
     Serial.println(F("Enable DMP failed!"));
   }
-  wait(5000);
+  // wait(5000);
 
 
 
 }
 
 void Gyro::firstStabalizeGyroValues() {
+bool ledState = true;
 
-  while (yaw < 0.2) {
+  while (abs(yaw) < 0.2) {
     //Serial.println(getTurnAngle());
     updateAllAngles();
+    // digitalWrite(LED_BUILTIN, ledState);
+    ledState = !ledState;
+  if(ledState){
+digitalWrite(LED_BUILTIN, HIGH);
+  }else{
+digitalWrite(LED_BUILTIN, LOW);    
+  }
+wait(200);
     Serial.println("X: " +  String(acc_x) + "," + String(acc_x_change) + " Y: " + String(acc_y) + "," + String(acc_y_change) +  " Z: " + String(acc_z)  + "," + String(acc_z_change)+ " Roll: " +  String(roll) + " Pitch: " + String(pitch) +  " Yaw: " + String(yaw));
 
-
-    // getTurnAngle();
   }
+
+  for (int i = 0; i<100; i++) {
+  updateAllAngles();
+  }
+
+
+
+
 }
 
 void Gyro::resetAllAngles() {  // aka initalize?, have own variable set to yaw and just += the yaw variable
@@ -147,19 +175,19 @@ void Gyro::updateAllAngles() {
         yaw = nextYaw;
       }
 
-      float acc_x_new = (float)data.Raw_Accel.Data.X;  // Extract the raw accelerometer data
-      float acc_y_new  = (float)data.Raw_Accel.Data.Y;
-      float acc_z_new = (float)data.Raw_Accel.Data.Z;
+      // float acc_x_new = (float)data.Raw_Accel.Data.X;  // Extract the raw accelerometer data
+      // float acc_y_new  = (float)data.Raw_Accel.Data.Y;
+      // float acc_z_new = (float)data.Raw_Accel.Data.Z;
 
-      acc_x_change = (acc_x - acc_x_new);  // record change
-      acc_y_change = (acc_y - acc_y_new);
-      acc_z_change = (acc_z - acc_z_new);
+      // acc_x_change = (acc_x - acc_x_new);  // record change
+      // acc_y_change = (acc_y - acc_y_new);
+      // acc_z_change = (acc_z - acc_z_new);
 
    
 
-      acc_x = (acc_x*0.5 + acc_x_new*0.5);  // average new data
-      acc_y = (acc_y*0.5 + acc_y_new*0.5); 
-      acc_z = (acc_z*0.5 + acc_z_new*0.5); 
+      // acc_x = (acc_x*0.5 + acc_x_new*0.5);  // average new data
+      // acc_y = (acc_y*0.5 + acc_y_new*0.5); 
+      // acc_z = (acc_z*0.5 + acc_z_new*0.5); 
       success = true;
 
 
