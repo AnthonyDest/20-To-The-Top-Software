@@ -66,7 +66,7 @@ success &= (initializeDMP() == ICM_20948_Stat_Ok);
 void Gyro::firstStabalizeGyroValues() {
 bool ledState = true;
 
-  while (abs(yaw) < 0.2) {
+  while (abs(yaw) < 0.1) {
     //Serial.println(getTurnAngle());
     updateAllAngles();
     // digitalWrite(LED_BUILTIN, ledState);
@@ -76,7 +76,7 @@ digitalWrite(LED_BUILTIN, HIGH);
   }else{
 digitalWrite(LED_BUILTIN, LOW);    
   }
-wait(200);
+wait(50);
     Serial.println("X: " +  String(acc_x) + "," + String(acc_x_change) + " Y: " + String(acc_y) + "," + String(acc_y_change) +  " Z: " + String(acc_z)  + "," + String(acc_z_change)+ " Roll: " +  String(roll) + " Pitch: " + String(pitch) +  " Yaw: " + String(yaw));
 
   }

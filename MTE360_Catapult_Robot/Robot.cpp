@@ -171,8 +171,8 @@ void Robot::turnDeltaAngleGyro(double angleToTurn, int leftDir, int rightDir) { 
     // Serial.println("  R " + String(rightEncoder->stepCounter));
     // deltaAngle = fmod((currentHeading - startAngle), 180);
 
-    Serial.println("Current Heading: " + String(currentHeading));
-     Serial.println("Delta Angle: " + String(deltaAngle));
+    // Serial.println("Current Heading: " + String(currentHeading));
+    //  Serial.println("Delta Angle: " + String(deltaAngle));
 
     // //log("Angle to turn: " + String(angleToTurn) + "   D" + String(deltaAngle));
     // wait(10);
@@ -506,18 +506,24 @@ void Robot::scanBothTOF() {
   scanDistanceTopAverage = 0;
 
   for (scanCounter = 0; scanCounter < NUMBER_OF_SCANS; scanCounter++) {
+    gyro->updateAllAngles();
     scanDistanceBot = botTOF->scanDistanceMM();
+    gyro->updateAllAngles();
     scanDistanceTop = topTOF->scanDistanceMM();
+    gyro->updateAllAngles();
     botTOF->debounceDistance(scanDistanceBot, scanDistanceBotAverage);
+    gyro->updateAllAngles();
     topTOF->debounceDistance(scanDistanceTop, scanDistanceTopAverage);
+    gyro->updateAllAngles();
+    
 
     // wait(SCAN_DELAY); //Wait1
   }
 
   scanDistanceBotAverage = scanDistanceBotAverage * cos(radians(0));
   scanDistanceTopAverage = scanDistanceTopAverage * cos(radians(3));
-  Serial.println("Bot TOF Distance: " + String(scanDistanceBotAverage));
-  Serial.println("Top TOF Distance: " + String(scanDistanceTopAverage));
+  // Serial.println("Bot TOF Distance: " + String(scanDistanceBotAverage));
+  // Serial.println("Top TOF Distance: " + String(scanDistanceTopAverage));
   //log("Bot TOF Distance: " + String(scanDistanceBotAverage));
   //log("Top TOF Distance: " + String(scanDistanceTopAverage));
 }
@@ -526,8 +532,8 @@ bool Robot::poleFound() { //will need to edit based on position 1 or 2
   //NEED TO TEST HOW LONG AVG FUNCTION TAKES AND IF ITS WORTH IMPROVING PERFORMANCE
   //Have a better tolerance with testing
   scanBothTOF();
-   Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
-  Serial.println("Top AVG: " + String(scanDistanceTopAverage));
+  //  Serial.println("BOT AVG: " + String(scanDistanceBotAverage));
+  // Serial.println("Top AVG: " + String(scanDistanceTopAverage));
 
   // delay(200);
 

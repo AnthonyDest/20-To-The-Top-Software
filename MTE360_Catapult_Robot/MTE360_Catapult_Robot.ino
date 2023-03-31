@@ -20,10 +20,18 @@
 #define AD0_VAL 86           // gyro
 #define BOT_TOF_RESET_PIN 5  //reset
 
-const int STATE_END = 550;
-const int DRIVE_TO_FOUND_POLE_STATE = 500;
-const float accelYFallingHigh = 700.0;
-const float accelYFallingLow = 10.0;
+const int PATH_TO_FIND_POLE = 600;  //Change this to select path
+//1300 new full sweep
+
+//500 is back left     |   //800 is back right 
+//400 is middle left   |   //700 is middle right 
+//300 is close left    |   //600 is close right 
+
+const int STATE_END = 998;
+const int DRIVE_TO_FOUND_POLE_STATE = 999;
+
+const int minPitchOnWall = -65;
+
 const double timer = 1000;
 double start_time = 0;
 
@@ -83,43 +91,37 @@ void updateRightEncoder() {
 }
 
 void loop() {  //state machine
-               // Serial.println(state);
-               // if(millis()>120000 and state != STATE_END){
-               //   mesgBot.brake();
-               //   state = STATE_END;
-               //   Serial.println("STOPPED");
-               // }
-               // wait(5000);
 
-  double x_roll_start = 0;
-  ;
-  double y_pitch_start = 0;
-  double z_yaw_start = 0;
-  double x_roll = 0;
-  ;
-  double y_pitch = 0;
-  double z_yaw = 0;
-  float y_change = 0;
   switch (state) {  // LOOK LINE 414 ROBOT FOR TESTING SCAN DISABLED
 
     case 0:  // starting condition
       blink(10, 100);
       mesgBot.updateAllGyro();
-      x_roll_start = gyro.roll;
-      y_pitch_start = gyro.pitch;
-      z_yaw_start = gyro.yaw;
-     //  while(gyro.acc_x_change != 0 && gyro.acc_y_change != 0 && gyro.acc_z_change != 0)
-     // {
-      //    mesgBot.updateAllGyro();
-          //Serial.println("X: " +  String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) +  " Z: " + String(gyro.acc_z)  + "," + String(gyro.acc_z_change)+ " Roll: " +  String(gyro.roll) + " Pitch: " + String(gyro.pitch) +  " Yaw: " + String(gyro.yaw));
-
-     // }
-      
       blink(3, 500);
       start_time = millis();
       // mesgBot.setupSDCard();
 
-      state = 200;
+
+       while (gyro.pitch > -45) {
+          mesgBot.updateAllGyro();
+           if (abs(gyro.yaw) < 5) {  // if aligned straight, constant LED
+          digitalWrite(LED_BUILTIN, HIGH);
+        } else {  //IF not aligned, turn off led
+          digitalWrite(LED_BUILTIN, LOW);
+        }
+       }
+       while (gyro.pitch < 0) {
+          mesgBot.updateAllGyro();
+           if (abs(gyro.yaw) < 5) {  // if aligned straight, constant LED
+          digitalWrite(LED_BUILTIN, HIGH);
+        } else {  //IF not aligned, turn off led
+          digitalWrite(LED_BUILTIN, LOW);
+        }
+       }
+
+       wait(5000);
+      // state = 20;
+      state = PATH_TO_FIND_POLE;
       // state = 8;
       break;
 
@@ -147,22 +149,58 @@ void loop() {  //state machine
 
       state = STATE_END;
 
-        wait(20000);
+      wait(20000);
 
       break;
 
     case 5:
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(100, 255);
+ mesgBot.updateAllGyro();
+      Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+     
+    if(gyro.pitch < 0) {
+        while (gyro.pitch < 0) {
+          mesgBot.updateAllGyro();
+          mesgBot.forwardDrive(100);
+          Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+      }
 
-     wait(7500);
+      mesgBot.brake();
+      wait(1000);
+            mesgBot.reverseDriveDistance(200, 40);
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(150, 200);
+        mesgBot.brake();
+        wait(2000);
 
-      wait(7500);
+        mesgBot.turnToHeading(0);
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(250, 255);
-      state = STATE_END;
+        // mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
+    }
+      // mesgBot.updateAllGyro();
+      // Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+     
+      // if (gyro.pitch < 0) {
+      //   mesgBot.forwardDrive(150);
+      //   while (gyro.pitch < 0) {
+      //     mesgBot.updateAllGyro();
+      //     Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+      //   }
+      //   mesgBot.driveForwardAtCurrentHeadingWithPID(200, 150);
+      //   wait(2000);
+      // }
+
+
+
+      //   mesgBot.driveForwardAtCurrentHeadingWithPID(100, 255);
+
+      //  wait(7500);
+
+      //   mesgBot.driveForwardAtCurrentHeadingWithPID(150, 200);
+
+      //   wait(7500);
+
+      //   mesgBot.driveForwardAtCurrentHeadingWithPID(250, 255);
+      //   state = STATE_END;
       break;
 
     case 6:
@@ -211,130 +249,146 @@ void loop() {  //state machine
       break;
 
 
-      case 7:
+    case 7:
 
-        mesgBot.reverseDrivePID(50);
-        wait(3000);
+      mesgBot.reverseDrivePID(50);
+      wait(3000);
 
-        mesgBot.reverseDrivePID(200);
-        wait(3000);
+      mesgBot.reverseDrivePID(200);
+      wait(3000);
 
-    break;
+      break;
 
     case 8:
-    Serial.println("heading1 " + String(gyro.yaw));
-    mesgBot.driveForwardAtCurrentHeadingWithPID(400, 150);
- Serial.println("heading2 " + String(gyro.yaw));
-    wait(2000);
- Serial.println("heading3 " + String(gyro.yaw));
-    mesgBot.turnToHeading(90);
-    Serial.println("heading4 " + String(gyro.yaw));
-    wait(1000);
-    Serial.println("heading5 " + String(gyro.yaw));
-     mesgBot.turnToHeading(-45);
-     Serial.println("heading6 " + String(gyro.yaw));
-     
-     wait(1000);
-     Serial.println("heading7 " + String(gyro.yaw));
-     mesgBot.turnToHeading(14);
+      Serial.println("heading1 " + String(gyro.yaw));
+      mesgBot.driveForwardAtCurrentHeadingWithPID(400, 150);
+      Serial.println("heading2 " + String(gyro.yaw));
+      wait(2000);
+      Serial.println("heading3 " + String(gyro.yaw));
+      mesgBot.turnToHeading(90);
+      Serial.println("heading4 " + String(gyro.yaw));
+      wait(1000);
+      Serial.println("heading5 " + String(gyro.yaw));
+      mesgBot.turnToHeading(-45);
+      Serial.println("heading6 " + String(gyro.yaw));
+
+      wait(1000);
+      Serial.println("heading7 " + String(gyro.yaw));
+      mesgBot.turnToHeading(14);
       Serial.println("heading8 " + String(gyro.yaw));
 
-  state = STATE_END;
+      state = STATE_END;
 
-    break;
+      break;
 
+      /////////////////////////////////////
+
+    case 20:  //Gyro has already been init,  //Confirm heading is good, waiting on launch - Transition state = on wall when pitch < 30deg? TEST value
+
+      while (gyro.pitch > minPitchOnWall) {  // dont change state until robot is facing downwards (on back of wall)
+        mesgBot.updateAllGyro();
+        Serial.println("Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+
+        if (abs(gyro.yaw) < 5) {  // if aligned straight, constant LED
+          digitalWrite(LED_BUILTIN, HIGH);
+        } else {  //IF not aligned, turn off led
+          digitalWrite(LED_BUILTIN, LOW);
+        }
+      }
+
+      state = 30;
+
+      break;
 
     case 30:
       Serial.print("get off wall");
 
+      wait(2000);
+      //using pole found to get linear distance to ground
 
-      /*
-      x_roll_start = gyro.roll;
-      y_pitch_start = gyro.pitch;
-      z_yaw_start = gyro.yaw;
-      */
-      /*
-      while (!gyro.success) {
+      // mesgBot.poleFound();
+      while (mesgBot.linearDistToPole > 200 or mesgBot.linearDistToPole == 0) {
         mesgBot.updateAllGyro();
+        // Serial.println(mesgBot.linearDistToPole);
+        mesgBot.poleFound();
+        Serial.println("X: " + String(gyro.roll) + " Y: " + String(gyro.pitch) + " Z: " + String(gyro.yaw));
       }
-      y_change = abs(gyro.acc_y_change);
-      //wait until in the air
-      while (accelYFallingHigh > y_change) {
+      Serial.println("AFTER DISTANCE: " + String(mesgBot.linearDistToPole));
 
-        mesgBot.updateAllGyro();
-        while (!gyro.success) {
+      Serial.println("X: " + String(gyro.roll) + " Y: " + String(gyro.pitch) + " Z: " + String(gyro.yaw));
+
+mesgBot.updateAllGyro();
+      if (abs(gyro.roll) > 90 and gyro.pitch < 0) {  //if fully backwards
+
+      // if(gyro.pitch < 0) {
+        while (gyro.pitch < 0) {
           mesgBot.updateAllGyro();
-        }
-        // if(gyro.success)
-        //{
-        Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
-        y_change = abs(gyro.acc_y_change);
-        Serial.println(y_change);
-        // }
-      }
-      //wait until we slow down
-      while (accelYFallingLow < y_change) {
+          mesgBot.forwardDrive(100);
+          Serial.println("X: " + String(gyro.roll) + " Y: " + String(gyro.pitch) + " Z: " + String(gyro.yaw));
 
-        mesgBot.updateAllGyro();
-        while (!gyro.success) {
-          mesgBot.updateAllGyro();
-        }
-        // if(gyro.success)
-        //{
-        Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
-        y_change = abs(gyro.acc_y_change);
-        Serial.println(y_change);
-        // }
+             }
 
-      }  //&& (abs(gyro.acc_y_change) < accelYFallingUp));
-      */
-      while(millis() < (timer - start_time));
-      Serial.print("no longer falling");
-      Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+      mesgBot.brake();
+      wait(1000);
+            mesgBot.reverseDriveDistance(200, 40);
 
-      
-      x_roll = x_roll_start - gyro.roll;
-      y_pitch = y_pitch_start - gyro.pitch;
-      z_yaw = z_yaw_start - gyro.yaw;
-
-      Serial.println("X: " + String(x_roll) + " Y: " + String(y_pitch) + " Z: " + String(z_yaw));
-
-      if (abs(x_roll) > 20) {
-        Serial.print("robot backwards");
-        while (y_pitch > 0) {
-          mesgBot.drive(100, FORWARD_DIR);
-          mesgBot.updateAllGyro();
-          y_pitch = y_pitch_start - gyro.pitch;
-        }
-        mesgBot.reverseDriveDistance(10, 200);
-      } 
-      else if (abs(z_yaw) > 45 ){ //Too far turned right or left, face wall, reverse, then turn to right heading
-        Serial.println("(abs(z_yaw) > 45 )   Too spun around");
-        //mesgBot.turnToHeading(180);
-        mesgBot.reverseDrivePID(50);    
-
-        //remove later
+        mesgBot.brake();
         wait(2000);
-        mesgBot.turnToHeading(90);
-      
-      }else if (abs(z_yaw) < 45 ){ //Slightly turned right or left, drive off the wall a bit, orientate, drive off wall normal distance, then turn to right heading
-      Serial.println("(abs(z_yaw) < 45 ) Slightly turned");
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);  
+        mesgBot.turnToHeading(0);
+
+        // mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
+    
+      }
+
+
+
+      // if (abs(gyro.roll) > 90 and gyro.pitch < 10) { //Backwards
+      //   Serial.print("robot backwards");
+      //   while (gyro.pitch < 0) {
+      //     mesgBot.drive(100, FORWARD_DIR);
+      //     mesgBot.updateAllGyro();
+      //   }
+      //   mesgBot.reverseDriveDistance(10, 200);
+      //   wait(1000);
+
+      // } else if (abs(gyro.roll) < 30 and gyro.pitch < 10) { //Forwards
+      //   Serial.print("robot forwards");
+
+      //   while (gyro.pitch < 0) {
+      //     mesgBot.drive(100, FORWARD_DIR);
+      //     mesgBot.updateAllGyro();
+      //   }
+      //   mesgBot.forwardDriveDistance(10, 200);
+
+      // } else if(abs(gyro.roll) > 30 and abs(gyro.roll) <60 and gyro.pitch > 0){ //Sideways
+
+      //   while (gyro.pitch < 0) {
+      //     mesgBot.drive(100, BACKWARD_DIR);
+      //     mesgBot.updateAllGyro();
+      //   }
+
+
+
+      // } else if (abs(gyro.yaw) > 45 ){ //Too far turned right or left, face wall, reverse, then turn to right heading
+      //   Serial.println("(abs(z_yaw) > 45 )   Too spun around");
+      //   //mesgBot.turnToHeading(180);
+      //   mesgBot.reverseDrivePID(50);
+
+      //   //remove later
+      //  // wait(2000);
+      //   mesgBot.turnToHeading(90);
+
+      // }else if (abs(gyro.yaw) < 45 ){ //Slightly turned right or left, drive off the wall a bit, orientate, drive off wall normal distance, then turn to right heading
+      // Serial.println("(abs(z_yaw) < 45 ) Slightly turned");
+
+      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
       mesgBot.turnToHeading(0);
       mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
-      } 
-      else {
-        Serial.print("robot forwards");
+      // }
 
-        while (y_pitch > 0) {
-          mesgBot.drive(100, FORWARD_DIR);
-          mesgBot.updateAllGyro();
-          y_pitch = y_pitch_start - gyro.pitch;
-        }
-        mesgBot.forwardDriveDistance(10, 200);
-      }
-      state = STATE_END;
+      // state = 200;
+      state = PATH_TO_FIND_POLE;
 
       Serial.print("Done falling");
 
@@ -342,78 +396,7 @@ void loop() {  //state machine
 
 
 
-      // case 5:
-      //   mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
-
-      //   wait(3000);
-
-      //   mesgBot.driveForwardAtCurrentHeadingWithPID(1000, 150);
-
-      //   state = STATE_END;
-      //   break;
-
-    case 50:  // rotate to start scan 1 heading
-      Serial.println("turn to 90");
-      // wait(5000);
-      mesgBot.turnToHeading(90);
-      state = 60;
-      Serial.println("EXIT  STATE 50");
-      // wait(3000);
-      break;
-
-    case 60:  //Look for pole at position 1
-      Serial.println("Look for pole 1");
-      // wait(1000);
-      if (mesgBot.searchForPole(CW_DIR, 90 + 30)) {
-        // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 90 + 30)) {
-        state = DRIVE_TO_FOUND_POLE_STATE;
-      } else {
-        state = 70;
-      }
-
-      break;
-
-    case 70:  //if pole not found at position 1, go to position 2
-      Serial.println("drive to pos 2");
-      // wait(1000);
-      mesgBot.turnToHeading(14);
-      // wait(1000);
-      mesgBot.driveForwardAtCurrentHeadingWithPID(990, 150);
-      // wait(5000);
-      state = 80;
-      break;
-
-    case 80:  // rotate to start scan 2 heading
-      Serial.println("Start 80");
-      mesgBot.turnToHeading(120);
-      Serial.println("END 80");
-      state = 90;
-      break;
-      ///////////////////////////////////////
-    case 90:
-      Serial.println("Start 90");
-      // wait(1000);
-      if (mesgBot.searchForPole(CW_DIR, 30 + 90 + 30)) {
-        // if (mesgBot.searchForPoleContiniousSweep(CW_DIR, 30 + 90 + 30)) {
-        state = DRIVE_TO_FOUND_POLE_STATE;
-      } else {
-        state = 100;
-      }
-      // Serial.println("END 90");
-      break;
-
-
-      // case 60:  //Look for pole at position 1
-      //   Serial.println("Look for pole 1");
-      //   wait(1000);
-      //   if (mesgBot.searchForPole(CW_DIR, 90 + 30)) {
-      //     state = DRIVE_TO_FOUND_POLE_STATE;
-      //   } else {
-      //     state = 70;
-      //   }
-
-      //   break;
-      ///////////////////
+      //200+ is start of actual search algorithm
 
     case 200:
       mesgBot.turnToHeading(90);
@@ -470,13 +453,13 @@ void loop() {  //state machine
         state = DRIVE_TO_FOUND_POLE_STATE;
       } else {
         state = 260;
-        blink(15,30);
+        blink(15, 30);
       }
       break;
 
 
     case 260:  // Move to position 4
-    // blink(5,250);
+               // blink(5,250);
       mesgBot.turnToHeading(-86);
       mesgBot.driveForwardAtCurrentHeadingWithPID(450, 150);
       state = 270;
@@ -531,6 +514,142 @@ void loop() {  //state machine
       break;
 
 
+      // SPLIT COURSE INTO 2X3 GRID
+    case 300:  //front left
+      mesgBot.turnToHeading(90);
+      state = 310;
+      break;
+
+    case 310:
+      if (mesgBot.searchForPole(CW_DIR, 110)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+
+    case 400:  //middle left
+      mesgBot.turnToHeading(21);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(884, 150);
+      state = 410;
+      break;
+    case 410:
+      mesgBot.turnToHeading(150);
+      if (mesgBot.searchForPole(CW_DIR, 260)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+
+    case 500:                                                  //back left
+      mesgBot.turnToHeading(19);                               //CHANGE HEADING
+      mesgBot.driveForwardAtCurrentHeadingWithPID(1309, 150);  //CHANGE DIST
+      state = 510;
+      break;
+    case 510:
+      mesgBot.turnToHeading(130);
+      if (mesgBot.searchForPole(CW_DIR, 230)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+    case 600:  //front right
+      mesgBot.turnToHeading(-90);
+      state = 610;
+      break;
+    case 610:
+      if (mesgBot.searchForPole(CCW_DIR, 110)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+
+    case 700:  //middle left
+      mesgBot.turnToHeading(-10);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(634, 150);
+      state = 710;
+      break;
+    case 710:
+      mesgBot.turnToHeading(105);
+      if (mesgBot.searchForPole(CW_DIR, 225)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+
+    case 800:  //back left
+      mesgBot.turnToHeading(-5);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(1222, 150);
+      state = 810;
+      break;
+    case 810:
+      mesgBot.turnToHeading(120);
+      if (mesgBot.searchForPole(CW_DIR, 230)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+        state = 100;  // else pole not found
+      }
+      break;
+
+
+
+    case 1300: //front
+      mesgBot.turnToHeading(90);
+      state = 1310;
+      break;
+    case 1310: 
+      if (mesgBot.searchForPole(CW_DIR, 180)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+         state = 1400;  // else pole not found
+      }
+      break;
+
+    case 1400: //middle left
+      mesgBot.turnToHeading(21);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(884, 150);
+      state = 1410;
+      break;
+    case 1410: 
+      mesgBot.turnToHeading(150); 
+      if (mesgBot.searchForPole(CW_DIR, 260)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+         state = 1500;  // else pole not found
+      }
+      break;
+
+     case 1500: //back left
+      mesgBot.turnToHeading(14);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(427, 150);
+      state = 1510;
+      break;
+    case 1510: 
+      mesgBot.turnToHeading(130); 
+      if (mesgBot.searchForPole(CW_DIR, 230)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+         state = 1800;  // else pole not found
+      }
+      break;
+    
+     case 1800: //back right
+      mesgBot.turnToHeading(-97);
+      mesgBot.driveForwardAtCurrentHeadingWithPID(591, 150);
+      state = 1810;
+      break;
+    case 1810: 
+      mesgBot.turnToHeading(10); 
+      if (mesgBot.searchForPole(CW_DIR, 150)) {
+        state = DRIVE_TO_FOUND_POLE_STATE;
+      } else {
+         state = 100;  // else pole not found
+      }
+      break;
       ///////////////////////////////////////
 
     case 100:  // Not found state
