@@ -20,7 +20,7 @@
 #define AD0_VAL 86           // gyro
 #define BOT_TOF_RESET_PIN 5  //reset
 
-const int PATH_TO_FIND_POLE = 600;  //Change this to select path
+const int PATH_TO_FIND_POLE = 1300;  //Change this to select path
 //1300 new full sweep
 
 //500 is back left     |   //800 is back right 
@@ -120,8 +120,8 @@ void loop() {  //state machine
        }
 
        wait(5000);
-      // state = 20;
-      state = PATH_TO_FIND_POLE;
+       state = 20;
+     // state = PATH_TO_FIND_POLE;
       // state = 8;
       break;
 
@@ -285,6 +285,8 @@ void loop() {  //state machine
 
     case 20:  //Gyro has already been init,  //Confirm heading is good, waiting on launch - Transition state = on wall when pitch < 30deg? TEST value
 
+      blink(3,100);
+
       while (gyro.pitch > minPitchOnWall) {  // dont change state until robot is facing downwards (on back of wall)
         mesgBot.updateAllGyro();
         Serial.println("Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
@@ -328,14 +330,15 @@ mesgBot.updateAllGyro();
 
              }
 
+
       mesgBot.brake();
       wait(1000);
-            mesgBot.reverseDriveDistance(200, 40);
+            mesgBot.reverseDriveDistance(100, 40);
 
         mesgBot.brake();
-        wait(2000);
+        wait(1000);
 
-        mesgBot.turnToHeading(0);
+        // mesgBot.turnToHeading(0);
 
         // mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
     
@@ -352,16 +355,16 @@ mesgBot.updateAllGyro();
       //   mesgBot.reverseDriveDistance(10, 200);
       //   wait(1000);
 
-      // } else if (abs(gyro.roll) < 30 and gyro.pitch < 10) { //Forwards
-      //   Serial.print("robot forwards");
+      else {//if (abs(gyro.roll) < 30 and gyro.pitch < 10) { //Forwards
+         Serial.print("robot forwards");
 
-      //   while (gyro.pitch < 0) {
-      //     mesgBot.drive(100, FORWARD_DIR);
-      //     mesgBot.updateAllGyro();
-      //   }
-      //   mesgBot.forwardDriveDistance(10, 200);
+         while (gyro.pitch < 0) {
+           mesgBot.drive(100, FORWARD_DIR);
+           mesgBot.updateAllGyro();
+         }
+        mesgBot.forwardDrivePID(200);
 
-      // } else if(abs(gyro.roll) > 30 and abs(gyro.roll) <60 and gyro.pitch > 0){ //Sideways
+       } //else if(abs(gyro.roll) > 30 and abs(gyro.roll) <60 and gyro.pitch > 0){ //Sideways
 
       //   while (gyro.pitch < 0) {
       //     mesgBot.drive(100, BACKWARD_DIR);
@@ -382,9 +385,9 @@ mesgBot.updateAllGyro();
       // }else if (abs(gyro.yaw) < 45 ){ //Slightly turned right or left, drive off the wall a bit, orientate, drive off wall normal distance, then turn to right heading
       // Serial.println("(abs(z_yaw) < 45 ) Slightly turned");
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
-      mesgBot.turnToHeading(0);
-      mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
+      // mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
+      // mesgBot.turnToHeading(0);
+      // mesgBot.driveForwardAtCurrentHeadingWithPID(50, 50);
       // }
 
       // state = 200;
