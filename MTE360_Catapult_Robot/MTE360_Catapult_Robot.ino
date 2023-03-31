@@ -120,9 +120,9 @@ void loop() {  //state machine
        }
 
        wait(5000);
-       state = 20;
+      //  state = 20;
      // state = PATH_TO_FIND_POLE;
-      // state = 8;
+      state = 20;
       break;
 
     case 2:
@@ -139,7 +139,7 @@ void loop() {  //state machine
       mesgBot.updateAllGyro();
       // Serial.println("X: " +  String(gyro.acc_x) + " Y: " + String(gyro.acc_y) +  " Z: " + String(gyro.acc_z));
       if (gyro.success) {
-        Serial.println("X: " + String(gyro.acc_x) + "," + String(gyro.acc_x_change) + " Y: " + String(gyro.acc_y) + "," + String(gyro.acc_y_change) + " Z: " + String(gyro.acc_z) + "," + String(gyro.acc_z_change) + " Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
+        Serial.println(" Roll: " + String(gyro.roll) + " Pitch: " + String(gyro.pitch) + " Yaw: " + String(gyro.yaw));
       }
       break;
 
@@ -205,44 +205,27 @@ void loop() {  //state machine
 
     case 6:
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(30, 150);
+  mesgBot.driveForwardAtCurrentHeadingWithPID(250, 150);
 
-      wait(7500);
+  wait(1000);
+  Serial.println("Turn backward");
+  Serial.println(gyro.getTurnAngle());
+   mesgBot.turnToHeading(180);
+   wait(1000);
+   Serial.println("Turn Left");
+     Serial.println(gyro.getTurnAngle());
+mesgBot.turnToHeading(45);
 
-      mesgBot.driveForwardAtCurrentHeadingWithPID(500, 150);
+wait(1000);
+Serial.println("Turn backward");
+  Serial.println(gyro.getTurnAngle());
+mesgBot.turnToHeading(-180);
 
-      wait(7500);
-
-      mesgBot.driveForwardAtCurrentHeadingWithPID(1000, 150);
-
-      wait(7500);
-
-      mesgBot.driveForwardAtCurrentHeadingWithPID(1500, 150);
-
-
-      for (int i = 0; i < 10; i++) {
-        mesgBot.leftTurnStationaryPID(50);
-        wait(50);
-      }
-
-
-      for (int i = 0; i < 10; i++) {
-        mesgBot.leftTurnStationaryPID(50);
-        // wait(100);
-      }
-      //  mesgBot.driveForwardAtCurrentHeadingWithPID(400, 175);
-      // mesgBot.driveForwardAtCurrentHeading(350);
-      // mesgBot.forwardDriveDistance(325, 151);
-      // wait(3000);
-
-      //  mesgBot.forwardDriveDistance(325, 152);
-      // wait(3000);
-
-      //  mesgBot.forwardDriveDistance(325, 153);
-      // wait(3000);
-
-      //  mesgBot.forwardDriveDistance(325, 154);
-      // wait(3000);
+wait(1000);
+Serial.println("Turn Right");
+  Serial.println(gyro.getTurnAngle());
+mesgBot.turnToHeading(-45);
+     
 
       state = STATE_END;
 
@@ -333,7 +316,7 @@ mesgBot.updateAllGyro();
 
       mesgBot.brake();
       wait(1000);
-            mesgBot.reverseDriveDistance(100, 40);
+            mesgBot.reverseDriveDistance(200, 40);
 
         mesgBot.brake();
         wait(1000);
@@ -391,6 +374,8 @@ mesgBot.updateAllGyro();
       // }
 
       // state = 200;
+ mesgBot.turnToHeading(0);
+
       state = PATH_TO_FIND_POLE;
 
       Serial.print("Done falling");

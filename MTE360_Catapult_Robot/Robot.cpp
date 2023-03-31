@@ -138,16 +138,41 @@ void Robot::turnToHeading(double heading) {
   double currentAngle = gyro->getTurnAngle(); //-110
   double deltaAngle = 0;
 
-  deltaAngle = heading - currentAngle;
-
-  if (abs(deltaAngle) > 180) {                                              // maybe remove the angle/abs(Angle), replace with just if statement
-    deltaAngle = (fmod(deltaAngle, 180.0)) * deltaAngle / abs(deltaAngle);  // modulo with same sign as original
+  if(abs(heading) == 180){
+    heading = 180;
   }
 
-  if (deltaAngle > 0) {
+  deltaAngle = heading - currentAngle;
+  Serial.println("H: " + String(heading) + " Cur: " + String(currentAngle) + " Del: " + String(deltaAngle));
+
+  // if (abs(deltaAngle) > 180) {                                              // maybe remove the angle/abs(Angle), replace with just if statement
+  // // deltaAngle = (360-abs(deltaAngle) ) * (deltaAngle / abs(deltaAngle) );
+  //   deltaAngle = 360-abs(deltaAngle) ;
+  //   if(deltaAngle>180){}
+  // }y
+
+  if(deltaAngle>180){
+    deltaAngle = deltaAngle - 360;
+  } else if(deltaAngle<-180){
+    deltaAngle = 360+deltaAngle;
+  }
+  
+ // deltaAngle = -(fmod(deltaAngle, 180.0)) * deltaAngle / abs(deltaAngle);  // modulo with same sign as original
+
+  // if (deltaAngle > 180) {                                              // maybe remove the angle/abs(Angle), replace with just if statement
+  //   turnDeltaAngleGyro(, BACKWARD_DIR, FORWARD_DIR);
+  //   deltaAngle = -(deltaAngle-180);
+  // } else if (deltaAngle < -180) {                                              // maybe remove the angle/abs(Angle), replace with just if statement
+  //   turnDeltaAngleGyro(0, BACKWARD_DIR, FORWARD_DIR);
+  //   deltaAngle = deltaAngle+180;
+  // }
+
+  if (deltaAngle > 0) { //CCW
+    Serial.println("H: " + String(heading) + " Cur: " + String(currentAngle) + " Del: " + String(deltaAngle));
     turnDeltaAngleGyro(abs(deltaAngle), BACKWARD_DIR, FORWARD_DIR);
 
-  } else if (deltaAngle < 0) {
+  } else if (deltaAngle < 0) { //CW
+    Serial.println("H: " + String(heading) + " Cur: " + String(currentAngle) + " Del: " + String(deltaAngle));
     turnDeltaAngleGyro(abs(deltaAngle), FORWARD_DIR, BACKWARD_DIR);
   }
 
@@ -166,16 +191,6 @@ void Robot::turnDeltaAngleGyro(double angleToTurn, int leftDir, int rightDir) { 
   while (angleToTurn > abs(deltaAngle)) {
     currentHeading = gyro->getTurnAngle();
     deltaAngle = currentHeading - startAngle;
-
-    // Serial.print("L " + String(leftEncoder->stepCounter));
-    // Serial.println("  R " + String(rightEncoder->stepCounter));
-    // deltaAngle = fmod((currentHeading - startAngle), 180);
-
-    // Serial.println("Current Heading: " + String(currentHeading));
-    //  Serial.println("Delta Angle: " + String(deltaAngle));
-
-    // //log("Angle to turn: " + String(angleToTurn) + "   D" + String(deltaAngle));
-    // wait(10);
   }
 
   leftMotor->brake();
